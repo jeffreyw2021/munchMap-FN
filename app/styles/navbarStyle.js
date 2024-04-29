@@ -9,29 +9,6 @@ export default StyleSheet.create({
         paddingHorizontal:30,
         zIndex: 10
     },
-    //search btn
-    searchbtn:{
-        height: 40,
-        width: 40,
-        borderRadius: 6,
-    },
-    searchBtnContent:{
-        backgroundColor: "#fff",
-        position:'absolute',
-        borderColor: "#000",
-        borderWidth:1,
-        zIndex:2,
-        top: 0,
-        width: '100%'
-    },
-    searchBtnShadow:{
-        position:'absolute',
-        borderWidth:0,
-        backgroundColor: "#000",
-        zIndex:1,
-        top: 3,
-        width: '100%'
-    },
 
     //navbar
     navbar:{
@@ -49,13 +26,26 @@ export default StyleSheet.create({
     },
     rollbtn:{
         flex:1,
+        backgroundColor:"transparent",
+    },
+    btnWhiteBackground:{
+        backgroundColor: "#fff",
+        position:'absolute',
+        width: '100%',
+        zIndex: 1,
+    },
+    btnGradBackground:{
+        position:'absolute',
+        zIndex: 2,
+        borderRadius: 6,
+        overflow: 'hidden'
     },
     btnContent:{
         backgroundColor: "#fff",
         position:'absolute',
         borderColor: "#000",
         borderWidth:1,
-        zIndex:2,
+        zIndex:3,
         top: 0,
         width: '100%',
         justifyContent: 'center',
@@ -67,7 +57,7 @@ export default StyleSheet.create({
         position:'absolute',
         borderWidth:0,
         backgroundColor: "#000",
-        zIndex:1,
+        zIndex:-1,
         top: 3,
         width: '100%'
     }

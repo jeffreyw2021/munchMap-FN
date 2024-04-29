@@ -35,7 +35,7 @@ export default function Searchbar() {
                 onPressOut={() => { if (!TriggerOn) { setIsPressing(false) } }}
                 onPress={() => setTriggerOn(true)}
             >
-                <View style={[styles.searchbtn, styles.searchBtnContent, isPressing ? { top: 3 } : null]}>
+                <View style={[styles.searchbtn, styles.searchBtnContent, isPressing && { top: 3 }]}>
                     <FontAwesomeIcon icon={faMagnifyingGlass} size={14} />
                     <TextInput
                         ref={inputRef}

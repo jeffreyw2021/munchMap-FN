@@ -1,29 +1,53 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, Animated, Easing, Vibration } from 'react-native';
 import styles from '../styles/navbarStyle';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faMap, faStore, faSliders, faDice } from '@fortawesome/free-solid-svg-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useNavigation } from '@react-navigation/native';
 
-export default function Navbar() {
+export default function Navbar({updateScreen}) {
 
     const [isPressingHome, setIsPressingHome] = useState(false);
     const [isInHome, setIsInHome] = useState(true);
     const [isPressingStores, setIsPressingStores] = useState(false);
-    const [isInStores, setIsInStores] = useState (false);
+    const [isInStores, setIsInStores] = useState(false);
     const [isPressingFilter, setIsPressingFilter] = useState(false);
     const [isPressingRoll, setIsPressingRoll] = useState(false);
+    let rollBtnGradWidth = useRef(new Animated.Value(0)).current;
 
     const handleToHome = () => {
-        console.log("to home");
+        updateScreen("home");
         setIsInHome(true);
         setIsInStores(false);
     }
     const handleToStores = () => {
-        console.log("to stores")
+        updateScreen("stores");
         setIsInStores(true);
         setIsInHome(false);
     }
+
+    useEffect(() => {
+        Animated.timing(rollBtnGradWidth, {
+            toValue: isPressingRoll ? 100 : 0,
+            duration: isPressingRoll ? 1500 : 500,
+            useNativeDriver: false,
+            easing: Easing.linear
+        }).start();
+        if(isPressingRoll){
+            handleToHome();
+            console.log("vibrate on");
+            Vibration.vibrate([500, 1000], true);
+        }else{
+            console.log("vibrate off");
+            Vibration.cancel();
+        }
+    }, [isPressingRoll]);
+
+    const widthInterpolation = rollBtnGradWidth.interpolate({
+        inputRange: [0, 100],
+        outputRange: ['0%', '100%']
+    });
 
     return (
         <View style={styles.overcast}>
@@ -32,8 +56,10 @@ export default function Navbar() {
                 <TouchableOpacity
                     style={styles.navbtn}
                     activeOpacity={1}
+                    onPressIn={() => setIsPressingFilter(true)}
+                    onPressOut={() => setIsPressingFilter(false)}
                 >
-                    <View style={[styles.navbtn, styles.btnContent]}>
+                    <View style={[styles.navbtn, styles.btnContent, isPressingFilter && { top: 3 }]}>
                         <FontAwesomeIcon icon={faSliders} size={16} />
                     </View>
                     <View style={[styles.navbtn, styles.btnShadow]} />
@@ -45,10 +71,20 @@ export default function Navbar() {
                     onPressIn={() => setIsPressingRoll(true)}
                     onPressOut={() => setIsPressingRoll(false)}
                 >
-                    <View style={[styles.navbtn, styles.rollbtn, styles.btnContent, isPressingRoll ? {top:3}: null]}>
+                    <View style={[styles.navbtn, styles.btnContent, styles.rollbtn, isPressingRoll && { top: 3 }]}>
                         <FontAwesomeIcon icon={faDice} size={18} />
                         <Text style={{ fontWeight: '700' }}>Roll</Text>
                     </View>
+                    <Animated.View
+                        style={[styles.navbtn, styles.rollbtn, styles.btnGradBackground, { width: widthInterpolation }, isPressingRoll ? {top:3, height:37} : {top:0, height:40}]}>
+                        <LinearGradient
+                        style={{flex: 1}}
+                            colors={['#98FF47', '#D0FF6B']}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 0 }}
+                        />
+                    </Animated.View>
+                    <View style={[styles.navbtn, styles.rollbtn, styles.btnWhiteBackground]}></View>
                     <View style={[styles.navbtn, styles.rollbtn, styles.btnShadow]} />
                 </TouchableOpacity>
 
@@ -60,7 +96,7 @@ export default function Navbar() {
                     onPress={handleToHome}
                 >
                     <LinearGradient
-                        style={[styles.navbtn, styles.btnContent, isPressingHome ? { top: 3 } : null]}
+                        style={[styles.navbtn, styles.btnContent, isPressingHome && { top: 3 }]}
                         colors={isInHome ? ['#98FF47', '#D0FF6B'] : ['#ffffff', '#ffffff']}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 0 }}
@@ -78,7 +114,7 @@ export default function Navbar() {
                     onPress={handleToStores}
                 >
                     <LinearGradient
-                        style={[styles.navbtn, styles.btnContent, isPressingStores ? { top: 3 } : null]}
+                        style={[styles.navbtn, styles.btnContent, isPressingStores && { top: 3 }]}
                         colors={isInStores ? ['#98FF47', '#D0FF6B'] : ['#ffffff', '#ffffff']}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 0 }}
