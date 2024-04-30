@@ -3,6 +3,8 @@ import { View, TextInput, TouchableOpacity } from 'react-native';
 import styles from '../styles/searchbarStyle';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons';
+import axios from 'axios';
+import * as Haptics from 'expo-haptics';
 
 export default function Searchbar() {
 
@@ -18,13 +20,16 @@ export default function Searchbar() {
         }
     }, [TriggerOn]);
     const [searchText, setSearchText] = useState("");
-
-    const handleSearch = () => {
+    const [results, setResults] = useState([]);
+    const handleSearch = async () => {
         if (searchText.length > 0) {
-            console.log("Searching for:", searchText);
+            
         }
-        setTriggerOn(false)
+        setTriggerOn(false);
     };
+    const hapticFeedback = () => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    }
 
     return (
         <View style={styles.overcast}>
@@ -33,7 +38,7 @@ export default function Searchbar() {
                 activeOpacity={1}
                 onPressIn={() => { if (!TriggerOn) { setIsPressing(true) } }}
                 onPressOut={() => { if (!TriggerOn) { setIsPressing(false) } }}
-                onPress={() => setTriggerOn(true)}
+                onPress={() => {setTriggerOn(true); if (!TriggerOn) {hapticFeedback();}}}
             >
                 <View style={[styles.searchbtn, styles.searchBtnContent, isPressing && { top: 3 }]}>
                     <FontAwesomeIcon icon={faMagnifyingGlass} size={14} />
@@ -46,7 +51,7 @@ export default function Searchbar() {
                         value={searchText}
                         onChangeText={setSearchText}
                         onSubmitEditing={handleSearch}
-                        onBlur={() =>  setTriggerOn(false)}
+                        onBlur={() => setTriggerOn(false)}
                     />
                 </View>
                 <View style={[styles.searchbtn, styles.searchBtnShadow]} />

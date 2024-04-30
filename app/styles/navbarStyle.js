@@ -3,11 +3,25 @@ import { StyleSheet } from 'react-native';
 export default StyleSheet.create({
     overcast:{
         position: 'absolute',
-        bottom: 30,
+        bottom: 65,
         width: '100%',
         justifyContent:'flex-end',
         paddingHorizontal:30,
-        zIndex: 10
+        rowGap: 12,
+        zIndex: 10,
+        pointerEvents: 'box-none'
+    },
+    filterIndicator:{
+        backgroundColor: "#fff",
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        flexDirection:'row',
+        columnGap: 5,
+        borderRadius: 6,
+        borderColor: "#000",
+        borderWidth: 1,
+        alignItems: 'center',
+        alignSelf: 'flex-start'
     },
 
     //navbar
@@ -38,7 +52,11 @@ export default StyleSheet.create({
         position:'absolute',
         zIndex: 2,
         borderRadius: 6,
-        overflow: 'hidden'
+        overflow: 'hidden',
+        width: '100%'
+    },
+    btnGradBackgroundInner:{
+        height: '100%'
     },
     btnContent:{
         backgroundColor: "#fff",

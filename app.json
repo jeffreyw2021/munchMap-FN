@@ -15,7 +15,10 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": false
+      "supportsTablet": true,
+      "config": {
+        "googleMapsApiKey": "AIzaSyAOOqE5UB0Nx01bkMqzTRxOKT9GSdyuM8w"
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -25,6 +28,21 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      [
+        "@rnmapbox/maps",
+        {
+          "RNMapboxMapsDownloadToken": "sk.eyJ1IjoiencyMDIwIiwiYSI6ImNscjh3ZjRrYTJ5N2Eya25lZmd6eHJ6NzcifQ._-wbHnLbKnumEkAmNKJzYg",
+          "RNMapboxMapsVersion": "11.0.0"
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Picko needs your location to find nearby spots."
+        }
+      ]
+    ]
   }
 }

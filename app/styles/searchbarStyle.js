@@ -8,6 +8,8 @@ export default StyleSheet.create({
         justifyContent: 'flex-start',
         paddingBottom: 30,
         paddingHorizontal: 30,
+        zIndex: 12,
+        pointerEvents: 'box-none'
     },
     //search btn
     searchbtn: {

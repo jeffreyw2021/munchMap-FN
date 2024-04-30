@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, Animated, Easing, Vibration } from 'react-native';
+import { View, Text, TouchableOpacity, Animated, Easing } from 'react-native';
 import styles from '../styles/navbarStyle';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faMap, faStore, faSliders, faDice } from '@fortawesome/free-solid-svg-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useNavigation } from '@react-navigation/native';
+import * as Haptics from 'expo-haptics';
 
-export default function Navbar({updateScreen}) {
+export default function Navbar({ updateScreen }) {
 
     const [isPressingHome, setIsPressingHome] = useState(false);
     const [isInHome, setIsInHome] = useState(true);
@@ -34,23 +34,46 @@ export default function Navbar({updateScreen}) {
             useNativeDriver: false,
             easing: Easing.linear
         }).start();
-        if(isPressingRoll){
+        if (isPressingRoll) {
             handleToHome();
             console.log("vibrate on");
-            Vibration.vibrate([500, 1000], true);
-        }else{
-            console.log("vibrate off");
-            Vibration.cancel();
         }
+    }, [isPressingRoll]);
+    useEffect(() => {
+        let hapticInterval;
+
+        if (isPressingRoll) {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+
+            hapticInterval = setInterval(() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            }, 150);
+        } else {
+            if (hapticInterval) {
+                clearInterval(hapticInterval);
+            }
+        }
+        return () => {
+            if (hapticInterval) {
+                clearInterval(hapticInterval);
+            }
+        };
     }, [isPressingRoll]);
 
     const widthInterpolation = rollBtnGradWidth.interpolate({
         inputRange: [0, 100],
         outputRange: ['0%', '100%']
     });
+    const hapticFeedback = () => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    }
 
     return (
         <View style={styles.overcast}>
+            <TouchableOpacity style={[styles.filterIndicator, isInStores && { opacity: 0, pointerEvents: 'none' }]}>
+                <Text style={{ fontSize: 14, fontWeight: 700 }}>Filter:</Text>
+                <Text style={{ fontSize: 12, fontWeight: 400 }}>Anything Nearby</Text>
+            </TouchableOpacity>
             <View style={styles.navbar}>
 
                 <TouchableOpacity
@@ -58,6 +81,7 @@ export default function Navbar({updateScreen}) {
                     activeOpacity={1}
                     onPressIn={() => setIsPressingFilter(true)}
                     onPressOut={() => setIsPressingFilter(false)}
+                    onPress={() => { hapticFeedback(); }}
                 >
                     <View style={[styles.navbtn, styles.btnContent, isPressingFilter && { top: 3 }]}>
                         <FontAwesomeIcon icon={faSliders} size={16} />
@@ -75,16 +99,18 @@ export default function Navbar({updateScreen}) {
                         <FontAwesomeIcon icon={faDice} size={18} />
                         <Text style={{ fontWeight: '700' }}>Roll</Text>
                     </View>
-                    <Animated.View
-                        style={[styles.navbtn, styles.rollbtn, styles.btnGradBackground, { width: widthInterpolation }, isPressingRoll ? {top:3, height:37} : {top:0, height:40}]}>
-                        <LinearGradient
-                        style={{flex: 1}}
-                            colors={['#98FF47', '#D0FF6B']}
-                            start={{ x: 0, y: 0 }}
-                            end={{ x: 1, y: 0 }}
-                        />
-                    </Animated.View>
-                    <View style={[styles.navbtn, styles.rollbtn, styles.btnWhiteBackground]}></View>
+                    <View style={[styles.navbtn, styles.rollbtn, styles.btnGradBackground, isPressingRoll ? { top: 3, height: 37 } : { top: 0, height: 40 }]}>
+                        <Animated.View
+                            style={[styles.btnGradBackgroundInner, { width: widthInterpolation }]}>
+                            <LinearGradient
+                                style={{ flex: 1 }}
+                                colors={['#98FF47', '#D0FF6B']}
+                                start={{ x: 0, y: 0 }}
+                                end={{ x: 1, y: 0 }}
+                            />
+                        </Animated.View>
+                    </View>
+                    <View style={[styles.navbtn, styles.rollbtn, styles.btnWhiteBackground, isPressingRoll ? { top: 3, height: 37 } : { top: 0, height: 40 }]}></View>
                     <View style={[styles.navbtn, styles.rollbtn, styles.btnShadow]} />
                 </TouchableOpacity>
 
@@ -93,7 +119,7 @@ export default function Navbar({updateScreen}) {
                     activeOpacity={1}
                     onPressIn={() => setIsPressingHome(true)}
                     onPressOut={() => setIsPressingHome(false)}
-                    onPress={handleToHome}
+                    onPress={() => { handleToHome(); hapticFeedback(); }}
                 >
                     <LinearGradient
                         style={[styles.navbtn, styles.btnContent, isPressingHome && { top: 3 }]}
@@ -111,7 +137,7 @@ export default function Navbar({updateScreen}) {
                     activeOpacity={1}
                     onPressIn={() => setIsPressingStores(true)}
                     onPressOut={() => setIsPressingStores(false)}
-                    onPress={handleToStores}
+                    onPress={() => { handleToStores(); hapticFeedback(); }}
                 >
                     <LinearGradient
                         style={[styles.navbtn, styles.btnContent, isPressingStores && { top: 3 }]}
