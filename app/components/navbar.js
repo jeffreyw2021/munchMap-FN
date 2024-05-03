@@ -70,7 +70,11 @@ export default function Navbar({ updateScreen }) {
 
     return (
         <View style={styles.overcast}>
-            <TouchableOpacity style={[styles.filterIndicator, isInStores && { opacity: 0, pointerEvents: 'none' }]}>
+            <TouchableOpacity
+                style={[styles.filterIndicator, isInStores && { opacity: 0, pointerEvents: 'none' }]}
+                activeOpacity={0.8}
+                onPress={() => { hapticFeedback(); }}
+            >
                 <Text style={{ fontSize: 14, fontWeight: 700 }}>Filter:</Text>
                 <Text style={{ fontSize: 12, fontWeight: 400 }}>Anything Nearby</Text>
             </TouchableOpacity>

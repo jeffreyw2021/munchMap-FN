@@ -20,9 +20,11 @@
     "expo-linear-gradient": "^12.7.2",
     "expo-location": "^16.5.5",
     "expo-status-bar": "~1.11.1",
+    "haversine-distance": "^1.2.1",
     "react": "18.2.0",
     "react-native": "0.73.6",
-    "react-native-maps": "1.10.0",
+    "react-native-map-clustering": "^3.4.2",
+    "react-native-maps": "^1.10.0",
     "react-native-svg": "^15.2.0"
   },
   "devDependencies": {
