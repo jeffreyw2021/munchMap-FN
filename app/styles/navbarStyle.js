@@ -3,7 +3,7 @@ import { StyleSheet } from 'react-native';
 export default StyleSheet.create({
     overcast:{
         position: 'absolute',
-        bottom: 65,
+        bottom: 45,
         width: '100%',
         justifyContent:'flex-end',
         paddingHorizontal:30,

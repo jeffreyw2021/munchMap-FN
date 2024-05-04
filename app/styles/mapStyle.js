@@ -8,12 +8,13 @@ export default StyleSheet.create({
     },
     map:{
         width: '100%',
-        height: '100%',
+        height: '120%',
+        marginTop: '-25%'
     },
     overcast:{
         position:'absolute', 
         right: 30, 
-        bottom: 117,
+        bottom: 97,
         width: '100%',
         height: 40, 
         alignItems: 'flex-end',

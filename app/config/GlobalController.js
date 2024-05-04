@@ -5,8 +5,13 @@ import Home from '../screens/Home';
 import Stores from '../screens/Stores';
 import Navbar from '../components/navbar';
 import * as Location from 'expo-location';
+import {initDB} from './sqlite';
 
 export default function GlobalController() {
+
+    useEffect(() => {
+        initDB();
+    }, []);   
 
     const [currentScreen, setCurrentScreen] = useState("home");
     const updateScreen = (screen) => {

@@ -79,7 +79,7 @@ const customMapStyle = [
                 "color": "#B3DAFF"
             }
         ]
-    }
+    },
 ];
 
 export default customMapStyle;
