@@ -6,7 +6,7 @@ import { faMap, faStore, faSliders, faDice } from '@fortawesome/free-solid-svg-i
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 
-export default function Navbar({ updateScreen }) {
+export default function Navbar({ setFilterOn, updateScreen }) {
 
     const [isPressingHome, setIsPressingHome] = useState(false);
     const [isInHome, setIsInHome] = useState(true);
@@ -73,7 +73,10 @@ export default function Navbar({ updateScreen }) {
             <TouchableOpacity
                 style={[styles.filterIndicator, isInStores && { opacity: 0, pointerEvents: 'none' }]}
                 activeOpacity={0.8}
-                onPress={() => { hapticFeedback(); }}
+                onPress={() => { 
+                    hapticFeedback(); 
+                    setFilterOn(true);
+                }}
             >
                 <Text style={{ fontSize: 14, fontWeight: 700 }}>Filter:</Text>
                 <Text style={{ fontSize: 12, fontWeight: 400 }}>Anything Nearby</Text>
@@ -85,7 +88,10 @@ export default function Navbar({ updateScreen }) {
                     activeOpacity={1}
                     onPressIn={() => setIsPressingFilter(true)}
                     onPressOut={() => setIsPressingFilter(false)}
-                    onPress={() => { hapticFeedback(); }}
+                    onPress={() => { 
+                        hapticFeedback(); 
+                        setFilterOn(true);
+                    }}
                 >
                     <View style={[styles.navbtn, styles.btnContent, isPressingFilter && { top: 3 }]}>
                         <FontAwesomeIcon icon={faSliders} size={16} />

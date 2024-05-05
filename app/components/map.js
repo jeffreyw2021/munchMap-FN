@@ -18,6 +18,7 @@ export default function Map({ location }) {
     // const screenWidth = Dimensions.get("window").width;
     // const screenHeight = Dimensions.get("window").height;
 
+    const [useGoogleMaps, setUseGoogleMaps] = useState(false);
     const [resetPressing, setResetPressing] = useState(false);
     const hapticFeedback = () => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -53,9 +54,9 @@ export default function Map({ location }) {
 
                 const distance = haversine(fetchedLocation, currentLoc);
 
-                if (distance <= location.radius * 1000) {
+                if (distance <= (location.radius * 1000)/2) {
                     found = true;
-                    console.log('Fetched location within radius, ' + 'distance: ' + distance + 'm');
+                    console.log('Fetched location within radius ' + location.radius * 1000 + ', distance: ' + distance + 'm');
                 }
             })
 
@@ -118,7 +119,7 @@ export default function Map({ location }) {
                     latitude: currentLocation ? currentLocation.coords.latitude : initialLocation.coords.latitude,
                     longitude: currentLocation ? currentLocation.coords.longitude : initialLocation.coords.longitude,
                 },
-                pitch: 30,
+                pitch: useGoogleMaps ? 30:0,
                 heading: 0,
                 altitude: altitude,
                 zoom: mapZoom
@@ -132,7 +133,7 @@ export default function Map({ location }) {
                 ref={mapRef}
                 style={[styles.map]}
                 customMapStyle={customMapStyle}
-                provider={PROVIDER_GOOGLE}
+                provider={useGoogleMaps && PROVIDER_GOOGLE}
                 initialRegion={{
                     latitude: initialLocation.coords.latitude,
                     longitude: initialLocation.coords.longitude,
@@ -155,12 +156,8 @@ export default function Map({ location }) {
                 mapPadding={{ top: 100, right: 22, bottom: 170, left: 22 }}
                 legalLabelInsets={{ bottom: 0, right: 30 }}
                 onPanDrag={() => { setAutoResetCamera(false) }}
-            // renderCluster={clusterRenderer}
-            // extent={450}
-            // animationEnabled={true}
             >
-
-                <Marker
+                {/* <Marker
                     coordinate={{
                         latitude: currentLocation ? currentLocation.coords.latitude : initialLocation.coords.latitude,
                         longitude: currentLocation ? currentLocation.coords.longitude : initialLocation.coords.longitude
@@ -169,12 +166,12 @@ export default function Map({ location }) {
                     priority="High"
                     collapsable={false}
                 >
-                    <View style={{ height: 50, justifyContent: 'flex-start', alignItems: 'center', gap: 0 }}>
+                    <View style={{justifyContent: 'flex-start', alignItems: 'center', gap: 0 }}>
                         <Image source={Picko} style={{ width: 47.5, height: 42, marginRight: 5.5 }} />
                     </View>
-                </Marker>
+                </Marker> */}
 
-                {places.map((place, index) => {
+                {/* {places.map((place, index) => {
                     const coords = { latitude: place.lat, longitude: place.lon };
                     const size = 0.8;
                     return (
@@ -192,7 +189,7 @@ export default function Map({ location }) {
                         </Marker>
                     );
                 }
-                )}
+                )} */}
             </MapView>
             <View style={styles.overcast}>
                 <TouchableOpacity
