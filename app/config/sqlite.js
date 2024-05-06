@@ -2,7 +2,24 @@ import * as SQLite from 'expo-sqlite';
 
 const db = SQLite.openDatabase('places.db');
 
+const deleteAllTables = () => {
+    db.transaction(tx => {
+        tx.executeSql(
+            `DROP TABLE IF EXISTS Places;`,
+            [],
+            () => console.log('Places table deleted successfully'),
+            (_, error) => console.error('Failed to delete Places table', error)
+        );
+        tx.executeSql(
+            `DROP TABLE IF EXISTS FetchedLocations;`,
+            [],
+            () => console.log('FetchedLocations table deleted successfully'),
+            (_, error) => console.error('Failed to delete FetchedLocations table', error)
+        );
+    });
+};
 export const initDB = () => {
+    // deleteAllTables();
     db.transaction(tx => {
         // Check and create the Places table if it doesn't exist
         tx.executeSql(
@@ -18,7 +35,8 @@ export const initDB = () => {
                         name TEXT,
                         lat REAL,
                         lon REAL,
-                        attributes JSON
+                        attributes JSON,
+                        emoji TEXT
                     );`,
                     [],
                     () => console.log('Places table created successfully'),

@@ -2,18 +2,19 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, ActivityIndicator, TouchableOpacity, Dimensions, Alert, Image, Text } from 'react-native';
 import styles from '../styles/mapStyle';
 // import MapView from "react-native-map-clustering";
-import MapView, { Marker,PROVIDER_GOOGLE } from 'react-native-maps';
+import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import customMapStyle from '../styles/customMap';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faLocationCrosshairs } from '@fortawesome/free-solid-svg-icons';
 import Icon from '../assets/icons/marker';
+import IconLarge from '../assets/icons/markerLarge';
 import Picko from '../assets/images/picko.png';
 import * as Haptics from 'expo-haptics';
 import * as Location from 'expo-location';
 import haversine from 'haversine-distance';
 import { getFetchedLocationsTable, getPlacesTable, fetchNearbyPlaces } from '../api/fetchNearbyPlaces';
 
-export default function Map({ location }) {
+export default function Map({ location, setGlobalCurrentLocation, globalRandomChoice }) {
 
     // const screenWidth = Dimensions.get("window").width;
     // const screenHeight = Dimensions.get("window").height;
@@ -31,54 +32,28 @@ export default function Map({ location }) {
     const [currentLocation, setCurrentLocation] = useState(null);
     const [autoResetCamera, setAutoResetCamera] = useState(true);
 
-    const [searchRadius, setSearchRadius] = useState(2);
-    const [places, setPlaces] = useState([]);
-
     useEffect(() => {
         if (initialLocation) {
             resetMapCamera(initialLocation);
         }
     }, [initialLocation]);
-
-    const fetchAndCheckLocations = async () => {
-        try {
-            const locations = await getFetchedLocationsTable();
-            let found = false;
-
-            locations.forEach(location => {
-                const fetchedLocation = { latitude: location.lat, longitude: location.lon };
-                const currentLoc = {
-                    latitude: currentLocation.coords.latitude,
-                    longitude: currentLocation.coords.longitude
-                };
-
-                const distance = haversine(fetchedLocation, currentLoc);
-
-                if (distance <= (location.radius * 1000)/2) {
-                    found = true;
-                    console.log('Fetched location within radius ' + location.radius * 1000 + ', distance: ' + distance + 'm');
-                }
-            })
-
-            if (!found) {
-                console.log('No fetched location within radius, fetching new places');
-                const places = await fetchNearbyPlaces(currentLocation.coords.latitude, currentLocation.coords.longitude, searchRadius);
-                setPlaces(places);
-            } 
-            // else {
-            //     console.log('Fetched location within radius, skipping fetching new places');
-            //     const places = await getPlacesTable();
-            //     // setPlaces(places);
-            // }
-        } catch (error) {
-            console.error('Error in fetching or processing locations:', error);
-        }
-    };
     useEffect(() => {
         if (currentLocation) {
-            fetchAndCheckLocations();
+            setGlobalCurrentLocation(currentLocation);
         }
     }, [currentLocation]);
+    const [randomChoice, setRandomChoice] = useState(globalRandomChoice);
+    useEffect(() => {
+        if (globalRandomChoice) {
+            const choice = typeof globalRandomChoice === 'string' ? JSON.parse(globalRandomChoice) : globalRandomChoice;
+            setRandomChoice(choice);
+            moveMapCamera({ latitude: choice.lat, longitude: choice.lon })
+            console.log("Random Choice: ", choice.name);
+            console.log("Random Choice Lat: ", choice.lat);
+            console.log("Random Choice Lon: ", choice.lon);
+            console.log("Random Choice Emoji: ", choice.emoji);
+        }
+    }, [globalRandomChoice]);
 
     useEffect(() => {
         let unsubscribe;
@@ -119,13 +94,27 @@ export default function Map({ location }) {
                     latitude: currentLocation ? currentLocation.coords.latitude : initialLocation.coords.latitude,
                     longitude: currentLocation ? currentLocation.coords.longitude : initialLocation.coords.longitude,
                 },
-                pitch: useGoogleMaps ? 30:0,
+                pitch: useGoogleMaps ? 30 : 0,
                 heading: 0,
                 altitude: altitude,
                 zoom: mapZoom
             }, { duration: 200 });
         }
     };
+    const moveMapCamera = (location) => {
+        if (location) {
+            mapRef.current.animateCamera({
+                center: {
+                    latitude: location.latitude,
+                    longitude: location.longitude
+                },
+                pitch: useGoogleMaps ? 30 : 0,
+                heading: 0,
+                altitude: altitude,
+                zoom: mapZoom
+            }, { duration: 200 });
+        }
+    }
 
     return (
         <View style={styles.container}>
@@ -133,7 +122,7 @@ export default function Map({ location }) {
                 ref={mapRef}
                 style={[styles.map]}
                 customMapStyle={customMapStyle}
-                provider={useGoogleMaps && PROVIDER_GOOGLE}
+                provider={useGoogleMaps ? "google" : undefined}
                 initialRegion={{
                     latitude: initialLocation.coords.latitude,
                     longitude: initialLocation.coords.longitude,
@@ -157,7 +146,8 @@ export default function Map({ location }) {
                 legalLabelInsets={{ bottom: 0, right: 30 }}
                 onPanDrag={() => { setAutoResetCamera(false) }}
             >
-                {/* <Marker
+
+                <Marker
                     coordinate={{
                         latitude: currentLocation ? currentLocation.coords.latitude : initialLocation.coords.latitude,
                         longitude: currentLocation ? currentLocation.coords.longitude : initialLocation.coords.longitude
@@ -166,30 +156,35 @@ export default function Map({ location }) {
                     priority="High"
                     collapsable={false}
                 >
-                    <View style={{justifyContent: 'flex-start', alignItems: 'center', gap: 0 }}>
+                    <View style={{ justifyContent: 'center', alignItems: 'center', gap: 0 }}>
                         <Image source={Picko} style={{ width: 47.5, height: 42, marginRight: 5.5 }} />
                     </View>
-                </Marker> */}
+                </Marker>
 
-                {/* {places.map((place, index) => {
-                    const coords = { latitude: place.lat, longitude: place.lon };
-                    const size = 0.8;
-                    return (
-                        <Marker
-                            key={index}
-                            coordinate={coords}
-                            zIndex={0}
-                        >
-                            <View>
-                                <Icon size={size} />
-                                <View style={{ height: 42 * size, width: '100%', position: 'absolute', top: 0, justifyContent: 'center', alignItems: 'center' }}>
-                                    <Text style={{ fontSize: 22 * size }}>🍔</Text>
+                {randomChoice &&
+                    (() => {
+                        const size = 0.8;
+                        return (
+                            <Marker
+                                coordinate={{
+                                    latitude: randomChoice.lat,
+                                    longitude: randomChoice.lon
+                                }}
+                                zIndex={2}
+                                priority="High"
+                                collapsable={false}
+                            >
+                                <View>
+                                    <IconLarge size={size} />
+                                    <View style={{ height: 78 * size, width: '100%', position: 'absolute', top: 0, justifyContent: 'center', alignItems: 'center' }}>
+                                        <Text style={{ fontSize: 44 * size }}>{randomChoice.emoji}</Text>
+                                    </View>
                                 </View>
-                            </View>
-                        </Marker>
-                    );
+                            </Marker>
+                        )
+                    })()
                 }
-                )} */}
+
             </MapView>
             <View style={styles.overcast}>
                 <TouchableOpacity

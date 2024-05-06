@@ -5,8 +5,12 @@ import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faMap, faStore, faSliders, faDice } from '@fortawesome/free-solid-svg-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
+import { getFetchedLocationsTable, getPlacesTable, RandomlyPickFromFetchedPlaces, fetchNearbyPlaces } from '../api/fetchNearbyPlaces';
+import * as SQLite from 'expo-sqlite';
 
-export default function Navbar({ setFilterOn, updateScreen }) {
+const db = SQLite.openDatabase('places.db');
+
+export default function Navbar({ setRandomChoice, setFilterOn, updateScreen, initialLocation, globalCurrentLocation, filterDistance }) {
 
     const [isPressingHome, setIsPressingHome] = useState(false);
     const [isInHome, setIsInHome] = useState(true);
@@ -68,6 +72,52 @@ export default function Navbar({ setFilterOn, updateScreen }) {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
 
+    const [currentLocation, setCurrentLocation] = useState(globalCurrentLocation || initialLocation);
+    // useEffect(()=>{
+    //     console.log("Global Location: ", currentLocation);
+    // },[currentLocation]);
+    useEffect(() => {
+        if(globalCurrentLocation){
+            setCurrentLocation(globalCurrentLocation);
+        }
+    }, [globalCurrentLocation]);
+    const getPlaceDetailsById = async (placeId) => {
+        return new Promise((resolve, reject) => {
+            db.transaction(tx => {
+                tx.executeSql(
+                    `SELECT * FROM Places WHERE id = ?;`,
+                    [placeId],
+                    (_, { rows }) => {
+                        if (rows.length > 0) {
+                            resolve(rows._array[0]);  
+                        } else {
+                            reject("No place found with the given ID.");
+                        }
+                    },
+                    (_, error) => {
+                        console.error('Failed to retrieve place details: ', error);
+                        reject(error);
+                    }
+                );
+            });
+        });
+    };
+    const rollForPlaces = async () => {
+        console.log("Current Location Latitude: ", currentLocation.coords.latitude, ", Longitude: ", currentLocation.coords.longitude);
+        try {
+            const fetchedPlaceId = await RandomlyPickFromFetchedPlaces(currentLocation.coords.latitude, currentLocation.coords.longitude, filterDistance, false);
+            if (fetchedPlaceId) {
+                console.log("Fetched Place ID: ", fetchedPlaceId);
+                const placeDetails = await getPlaceDetailsById(fetchedPlaceId);
+                setRandomChoice(placeDetails);
+            } else {
+                console.log("No new place was fetched or inserted.");
+            }
+        } catch (error) {
+            console.error("Error during fetching and retrieving place details: ", error);
+        }
+    };
+    
     return (
         <View style={styles.overcast}>
             <TouchableOpacity
@@ -103,7 +153,10 @@ export default function Navbar({ setFilterOn, updateScreen }) {
                     style={[styles.navbtn, styles.rollbtn]}
                     activeOpacity={1}
                     onPressIn={() => setIsPressingRoll(true)}
-                    onPressOut={() => setIsPressingRoll(false)}
+                    onPressOut={() => {
+                        setIsPressingRoll(false);
+                        rollForPlaces();
+                    }}
                 >
                     <View style={[styles.navbtn, styles.btnContent, styles.rollbtn, isPressingRoll && { top: 3 }]}>
                         <FontAwesomeIcon icon={faDice} size={18} />

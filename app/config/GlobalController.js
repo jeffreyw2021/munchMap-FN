@@ -39,6 +39,7 @@ export default function GlobalController() {
             setLocation(location);
         })();
     }, []);
+    const [globalCurrentLocation, setGlobalCurrentLocation] = useState(null);
 
     //Filter
     const [filterOn, setFilterOn] = useState(false);
@@ -46,6 +47,9 @@ export default function GlobalController() {
     useEffect(() => {
         console.log("Distance: ", filterDistance);
     }, [filterDistance]);
+
+    //Randomize Choice
+    const [randomChoice, setRandomChoice] = useState(null);
 
     //error handling
     if (error) {
@@ -56,6 +60,7 @@ export default function GlobalController() {
         );
     }
     else if (location) {
+        // console.log("Location: ", location);
         return (
             <View style={{ flex: 1 }}>
                 {filterOn && (
@@ -72,8 +77,18 @@ export default function GlobalController() {
                     <Navbar
                         updateScreen={updateScreen}
                         setFilterOn={setFilterOn}
+                        initialLocation={location}
+                        globalCurrentLocation={globalCurrentLocation}
+                        filterDistance={filterDistance}
+                        setRandomChoice={setRandomChoice}
                     />
-                    {currentScreen === 'home' && <Home location={location} />}
+                    {currentScreen === 'home' &&
+                        <Home
+                            location={location}
+                            setGlobalCurrentLocation={setGlobalCurrentLocation}
+                            randomChoice={randomChoice}
+                        />
+                    }
                     {currentScreen === 'stores' && <Stores />}
                 </View>
             </View>
