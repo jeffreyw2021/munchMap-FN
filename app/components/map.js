@@ -14,7 +14,7 @@ import * as Location from 'expo-location';
 import haversine from 'haversine-distance';
 import { getFetchedLocationsTable, getPlacesTable, fetchNearbyPlaces } from '../api/fetchNearbyPlaces';
 
-export default function Map({ location, setGlobalCurrentLocation, globalRandomChoice }) {
+export default function Map({ location, setGlobalCurrentLocation, globalRandomChoice, exitRandomChoice, setExitRandomChoice }) {
 
     // const screenWidth = Dimensions.get("window").width;
     // const screenHeight = Dimensions.get("window").height;
@@ -48,10 +48,6 @@ export default function Map({ location, setGlobalCurrentLocation, globalRandomCh
             const choice = typeof globalRandomChoice === 'string' ? JSON.parse(globalRandomChoice) : globalRandomChoice;
             setRandomChoice(choice);
             moveMapCamera({ latitude: choice.lat, longitude: choice.lon })
-            console.log("Random Choice: ", choice.name);
-            console.log("Random Choice Lat: ", choice.lat);
-            console.log("Random Choice Lon: ", choice.lon);
-            console.log("Random Choice Emoji: ", choice.emoji);
         }
     }, [globalRandomChoice]);
 
@@ -116,6 +112,14 @@ export default function Map({ location, setGlobalCurrentLocation, globalRandomCh
         }
     }
 
+    useEffect(() => {
+        if(exitRandomChoice) {
+            setRandomChoice(null);
+            resetMapCamera(currentLocation);
+            setExitRandomChoice(false);
+        }
+    }, [exitRandomChoice]);
+
     return (
         <View style={styles.container}>
             <MapView
@@ -136,8 +140,8 @@ export default function Map({ location, setGlobalCurrentLocation, globalRandomCh
                 pitchEnabled={false}
                 rotateEnabled={true}
                 loadingEnabled={true}
-                showsUserLocation={true}
-                followsUserLocation={autoResetCamera}
+                showsUserLocation={!randomChoice}
+                followsUserLocation={(!randomChoice && autoResetCamera)}
                 showsPointsOfInterest={false}
                 showsCompass={false}
                 // tintColor='#7CE400'
@@ -147,7 +151,7 @@ export default function Map({ location, setGlobalCurrentLocation, globalRandomCh
                 onPanDrag={() => { setAutoResetCamera(false) }}
             >
 
-                <Marker
+                {!randomChoice && (<Marker
                     coordinate={{
                         latitude: currentLocation ? currentLocation.coords.latitude : initialLocation.coords.latitude,
                         longitude: currentLocation ? currentLocation.coords.longitude : initialLocation.coords.longitude
@@ -159,7 +163,7 @@ export default function Map({ location, setGlobalCurrentLocation, globalRandomCh
                     <View style={{ justifyContent: 'center', alignItems: 'center', gap: 0 }}>
                         <Image source={Picko} style={{ width: 47.5, height: 42, marginRight: 5.5 }} />
                     </View>
-                </Marker>
+                </Marker>)}
 
                 {randomChoice &&
                     (() => {

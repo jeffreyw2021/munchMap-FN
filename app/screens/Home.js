@@ -5,7 +5,7 @@ import Searchbar from '../components/searchbar';
 import Map from '../components/map';
 import Filter from '../components/filter';
 
-export default function Home({ location, setGlobalCurrentLocation, randomChoice }) {
+export default function Home({ location, setGlobalCurrentLocation, randomChoice, exitRandomChoice, setExitRandomChoice }) {
 
     return (
         <View style={styles.container}>
@@ -14,6 +14,8 @@ export default function Home({ location, setGlobalCurrentLocation, randomChoice 
                 location={{ location }}
                 setGlobalCurrentLocation={setGlobalCurrentLocation}
                 globalRandomChoice={randomChoice}
+                exitRandomChoice={exitRandomChoice}
+                setExitRandomChoice={setExitRandomChoice}
             />
         </View>
     );

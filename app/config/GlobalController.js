@@ -7,6 +7,7 @@ import Navbar from '../components/navbar';
 import * as Location from 'expo-location';
 import { initDB } from './sqlite';
 import Filter from '../components/filter';
+import DetailModal from '../components/detailModal';
 
 export default function GlobalController() {
 
@@ -50,6 +51,7 @@ export default function GlobalController() {
 
     //Randomize Choice
     const [randomChoice, setRandomChoice] = useState(null);
+    const [exitRandomChoice, setExitRandomChoice] = useState(false);
 
     //error handling
     if (error) {
@@ -63,6 +65,15 @@ export default function GlobalController() {
         // console.log("Location: ", location);
         return (
             <View style={{ flex: 1 }}>
+                {randomChoice && (
+                    <DetailModal
+                        randomChoice={randomChoice}
+                        setRandomChoice={setRandomChoice}
+                        setExitRandomChoice={setExitRandomChoice}
+                        globalCurrentLocation={globalCurrentLocation}
+                        filterDistance={filterDistance}
+                    />
+                )}
                 {filterOn && (
                     <Filter
                         props={{
@@ -87,6 +98,8 @@ export default function GlobalController() {
                             location={location}
                             setGlobalCurrentLocation={setGlobalCurrentLocation}
                             randomChoice={randomChoice}
+                            exitRandomChoice={exitRandomChoice}
+                            setExitRandomChoice={setExitRandomChoice}
                         />
                     }
                     {currentScreen === 'stores' && <Stores />}
