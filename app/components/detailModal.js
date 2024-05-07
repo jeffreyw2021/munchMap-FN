@@ -6,7 +6,7 @@ import * as Haptics from 'expo-haptics';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faXmark, faDice, faLocationArrow } from '@fortawesome/free-solid-svg-icons';
 import { faCircleQuestion, faBookmark } from '@fortawesome/free-regular-svg-icons';
-import { faBookMark as solidBookMark } from '@fortawesome/free-solid-svg-icons';
+import { faBookmark as solidBookMark } from '@fortawesome/free-solid-svg-icons';
 import { getFetchedLocationsTable, getPlacesTable, RandomlyPickFromFetchedPlaces, fetchNearbyPlaces } from '../api/fetchNearbyPlaces';
 import * as SQLite from 'expo-sqlite';
 
@@ -36,14 +36,25 @@ export default function DetailModal({ globalCurrentLocation, filterDistance, ran
         return output;
     };
     const [tags, setTags] = useState(null);
+    const [isSaved, setIsSaved] = useState(false);
     useEffect(() => {
         if (randomChoice) {
             setDetail(randomChoice);
             setTags(processDetail(randomChoice));
-            console.log(processDetail(randomChoice));
-            console.log("Detail: ", randomChoice);
+            isPlaceSaved(randomChoice.id)
+                .then(isSaved => {
+                    setIsSaved(isSaved);
+                })
+                .catch(error => {
+                    console.error('Failed to check if place is saved: ', error);
+                });
         }
     }, [randomChoice]);
+    useEffect(() => {
+        if (isSaved) {
+            console.log("isSaved: ", isSaved);
+        }
+    }, [isSaved]);
     const hapticFeedback = () => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
@@ -153,6 +164,85 @@ export default function DetailModal({ globalCurrentLocation, filterDistance, ran
         }
     };
 
+    const savePlaceToSavedPlaces = async (placeId) => {
+        db.transaction(tx => {
+            tx.executeSql(
+                `SELECT * FROM Places WHERE id = ?;`,
+                [placeId],
+                (_, result) => {
+                    if (result.rows.length > 0) {
+                        const place = result.rows.item(0);
+                        // Check if place already exists in savedPlaces
+                        tx.executeSql(
+                            `SELECT id FROM savedPlaces WHERE id = ?;`,
+                            [placeId],
+                            (_, checkResult) => {
+                                if (checkResult.rows.length === 0) {
+                                    // Place not in savedPlaces, so insert it
+                                    tx.executeSql(
+                                        `INSERT INTO savedPlaces (id, name, lat, lon, attributes, emoji) VALUES (?, ?, ?, ?, ?, ?);`,
+                                        [place.id, place.name, place.lat, place.lon, place.attributes, place.emoji],
+                                        () => console.log(`Place ${place.name} saved successfully`),
+                                        (_, error) => console.error(`Failed to save place ${place.name}: `, error)
+                                    );
+                                    setIsSaved(true);
+                                } else {
+                                    console.log('Place already saved in savedPlaces');
+                                    setIsSaved(true);
+                                }
+                            },
+                            (_, error) => console.error(`Failed to check savedPlaces: `, error)
+                        );
+                    } else {
+                        console.error('No place found with ID:', placeId);
+                    }
+                },
+                (_, error) => console.error('Failed to retrieve place details: ', error)
+            );
+        });
+    };
+    const removePlaceFromSavedPlaces = async (placeId) => {
+        db.transaction(tx => {
+            tx.executeSql(
+                `DELETE FROM savedPlaces WHERE id = ?;`,
+                [placeId],
+                (_, result) => {
+                    if (result.rowsAffected > 0) {
+                        console.log(`Place with ID ${placeId} removed from savedPlaces successfully.`);
+                        setIsSaved(false);
+                    } else {
+                        console.log(`No place found with ID ${placeId} in savedPlaces or failed to delete.`);
+                    }
+                },
+                (_, error) => {
+                    console.error(`Failed to delete place from savedPlaces: `, error);
+                }
+            );
+        });
+    };    
+
+    const isPlaceSaved = async (placeId) => {
+        return new Promise((resolve, reject) => {
+            db.transaction(tx => {
+                tx.executeSql(
+                    `SELECT id FROM savedPlaces WHERE id = ?;`,
+                    [placeId],
+                    (_, result) => {
+                        if (result.rows.length > 0) {
+                            resolve(true); // The place is saved
+                        } else {
+                            resolve(false); // The place is not saved
+                        }
+                    },
+                    (_, error) => {
+                        console.error('Error checking if place is saved: ', error);
+                        reject(error);
+                    }
+                );
+            });
+        });
+    };
+
     return (
         <View style={styles.overcast}>
             <Animated.View style={[styles.detailBlock, {
@@ -175,11 +265,29 @@ export default function DetailModal({ globalCurrentLocation, filterDistance, ran
                         onPressOut={() => setSavePressing(false)}
                         onPress={() => {
                             hapticFeedback();
+                            if (detail && detail.id) {
+                                if(isSaved){
+                                    removePlaceFromSavedPlaces(detail.id);
+                                }else{
+                                    savePlaceToSavedPlaces(detail.id);
+                                }
+                            }
                         }}
                     >
-                        <View style={[styles.saveBtnContent, savePressing && { top: 3 }]}>
-                            <FontAwesomeIcon icon={faBookmark} size={16} />
-                        </View>
+                        {isSaved ? (
+                            <LinearGradient
+                                style={[styles.saveBtnContent, savePressing && { top: 3 }]}
+                                colors={['#98FF47', '#D0FF6B']}
+                                start={{ x: 0, y: 0 }}
+                                end={{ x: 1, y: 0 }}
+                            >
+                                <FontAwesomeIcon icon={solidBookMark} size={16} />
+                            </LinearGradient>
+                        ) : (
+                            <View style={[styles.saveBtnContent, savePressing && { top: 3 }]}>
+                                <FontAwesomeIcon icon={faBookmark} size={16} />
+                            </View>
+                        )}
                         <View style={styles.saveBtnShadow} />
                     </TouchableOpacity>
                 </View>
@@ -264,7 +372,7 @@ export default function DetailModal({ globalCurrentLocation, filterDistance, ran
                         <View style={styles.reRollShadow} />
                     </TouchableOpacity>
                 </View>
-            </Animated.View>
-        </View>
+            </Animated.View >
+        </View >
     )
 };

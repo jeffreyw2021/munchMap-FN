@@ -187,36 +187,47 @@ export const RandomlyPickFromFetchedPlaces = async (lat, lon, searchRadius = 0.5
     try {
         const response = await axios.post(overpassUrl, query);
         const fetchedPlaces = response.data.elements;
-        const insertedIds = [];
 
         insertFetchedLocation(lat, lon, searchRadius);
 
-        if (fetchedPlaces && fetchedPlaces.length > 0) {
-            for (const place of fetchedPlaces) {
-                const processedPlace = processPlaceData(place);
-                if (processedPlace) {
-                    const insertedId = await insertPlace(processedPlace);
-                    if (insertedId !== null) {
-                        insertedIds.push(insertedId);
-                    }
+        const placeIds = [];
+
+        for (const place of fetchedPlaces) {
+            const processedPlace = processPlaceData(place);
+            if (processedPlace) {
+                const placeId = await insertPlace(processedPlace);
+                if (placeId !== null) {
+                    placeIds.push(placeId);
                 }
             }
-        } else {
-            console.log('No places found');
-            return null;
         }
 
-        const existingPlaces = await getPlacesWithinRadius(lat, lon, searchRadius * 1000); 
-        if (existingPlaces.length > 0) {
-            const randomIndex = Math.floor(Math.random() * existingPlaces.length);
-            return existingPlaces[randomIndex].id;
+        if (placeIds.length > 0) {
+            const randomIndex = Math.floor(Math.random() * placeIds.length);
+            return placeIds[randomIndex]; // Return the ID of a randomly picked place
         } else {
-            console.log('No existing places found within the specified radius.');
-            return null;
+            console.log('No places found, attempting to fetch from local database...');
+            return fetchRandomPlaceFromLocal(lat, lon, searchRadius * 1000);
         }
-
     } catch (error) {
-        console.error("Failed to fetch and randomly pick places: ", error);
+        console.error("Network or processing error occurred: ", error);
+        console.log('Attempting to fetch random place from local database due to network error...');
+        return fetchRandomPlaceFromLocal(lat, lon, searchRadius * 1000);
+    }
+};
+
+const fetchRandomPlaceFromLocal = async (lat, lon, radius) => {
+    try {
+        const localPlaces = await getPlacesWithinRadius(lat, lon, radius);
+        if (localPlaces.length > 0) {
+            const randomIndex = Math.floor(Math.random() * localPlaces.length);
+            return localPlaces[randomIndex].id; 
+        } else {
+            console.log('No local places found within the radius.');
+            return null;
+        }
+    } catch (error) {
+        console.error('Error retrieving local places:', error);
         return null;
     }
 };
@@ -251,6 +262,24 @@ export const getPlacesTable = async () => {
                 },
                 (_, error) => {
                     console.error('Failed to retrieve places: ', error);
+                    reject(error);
+                }
+            );
+        });
+    });
+};
+export const getSavedPlacesTable = async () => {
+    return new Promise((resolve, reject) => {
+        db.transaction(tx => {
+            tx.executeSql(
+                `SELECT * FROM SavedPlaces;`,
+                [],
+                (_, { rows }) => {
+                    console.log('SavedPlaces retrieved successfully');
+                    resolve(rows._array);
+                },
+                (_, error) => {
+                    console.error('Failed to retrieve SavedPlaces: ', error);
                     reject(error);
                 }
             );

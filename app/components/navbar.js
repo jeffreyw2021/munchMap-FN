@@ -125,6 +125,7 @@ export default function Navbar({ setRandomChoice, setFilterOn, updateScreen, ini
                 activeOpacity={0.8}
                 onPress={() => { 
                     hapticFeedback(); 
+                    handleToHome();
                     setFilterOn(true);
                 }}
             >
@@ -140,6 +141,7 @@ export default function Navbar({ setRandomChoice, setFilterOn, updateScreen, ini
                     onPressOut={() => setIsPressingFilter(false)}
                     onPress={() => { 
                         hapticFeedback(); 
+                        handleToHome();
                         setFilterOn(true);
                     }}
                 >

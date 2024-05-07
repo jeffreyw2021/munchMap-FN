@@ -16,6 +16,12 @@ const deleteAllTables = () => {
             () => console.log('FetchedLocations table deleted successfully'),
             (_, error) => console.error('Failed to delete FetchedLocations table', error)
         );
+        tx.executeSql(
+            `DROP TABLE IF EXISTS SavedPlaces;`,
+            [],
+            () => console.log('SavedPlaces table deleted successfully'),
+            (_, error) => console.error('Failed to delete SavedPlaces table', error)
+        );
     });
 };
 export const initDB = () => {
@@ -66,6 +72,33 @@ export const initDB = () => {
                     [],
                     () => console.log('FetchedLocations table created successfully'),
                     (_, error) => console.error('Failed to create FetchedLocations table', error)
+                );
+                return false;
+            }
+        );
+    });
+
+    db.transaction(tx => {
+        // Check and create the FetchedLocations table if it doesn't exist
+        tx.executeSql(
+            `SELECT 1 FROM SavedPlaces LIMIT 1;`,
+            [],
+            () => {
+                console.log('SavedPlaces table already exists');
+            },
+            () => {
+                tx.executeSql(
+                    `CREATE TABLE IF NOT EXISTS SavedPlaces (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        name TEXT,
+                        lat REAL,
+                        lon REAL,
+                        attributes JSON,
+                        emoji TEXT
+                    );`,
+                    [],
+                    () => console.log('SavedPlaces table created successfully'),
+                    (_, error) => console.error('Failed to create SavedPlaces table', error)
                 );
                 return false;
             }
