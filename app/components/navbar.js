@@ -10,7 +10,7 @@ import * as SQLite from 'expo-sqlite';
 
 const db = SQLite.openDatabase('places.db');
 
-export default function Navbar({ setRandomChoice, setFilterOn, updateScreen, initialLocation, globalCurrentLocation, filterDistance }) {
+export default function Navbar({ props }) {
 
     const [isPressingHome, setIsPressingHome] = useState(false);
     const [isInHome, setIsInHome] = useState(true);
@@ -20,13 +20,27 @@ export default function Navbar({ setRandomChoice, setFilterOn, updateScreen, ini
     const [isPressingRoll, setIsPressingRoll] = useState(false);
     let rollBtnGradWidth = useRef(new Animated.Value(0)).current;
 
+
+    useEffect(()=>{
+        if(props.currentScreen){
+            if(props.currentScreen == "home"){
+                setIsInHome(true);
+                setIsInStores(false);
+            }
+            else if(props.currentScreen == "stores"){
+                setIsInStores(true);
+                setIsInHome(false);
+            }
+        }
+    },[props.currentScreen])
+
     const handleToHome = () => {
-        updateScreen("home");
+        props.updateScreen("home");
         setIsInHome(true);
         setIsInStores(false);
     }
     const handleToStores = () => {
-        updateScreen("stores");
+        props.updateScreen("stores");
         setIsInStores(true);
         setIsInHome(false);
     }
@@ -72,15 +86,15 @@ export default function Navbar({ setRandomChoice, setFilterOn, updateScreen, ini
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
 
-    const [currentLocation, setCurrentLocation] = useState(globalCurrentLocation || initialLocation);
+    const [currentLocation, setCurrentLocation] = useState(props.globalCurrentLocation || props.initialLocation);
     // useEffect(()=>{
     //     console.log("Global Location: ", currentLocation);
     // },[currentLocation]);
     useEffect(() => {
-        if(globalCurrentLocation){
-            setCurrentLocation(globalCurrentLocation);
+        if(props.globalCurrentLocation){
+            setCurrentLocation(props.globalCurrentLocation);
         }
-    }, [globalCurrentLocation]);
+    }, [props.globalCurrentLocation]);
     const getPlaceDetailsById = async (placeId) => {
         return new Promise((resolve, reject) => {
             db.transaction(tx => {
@@ -105,11 +119,11 @@ export default function Navbar({ setRandomChoice, setFilterOn, updateScreen, ini
     const rollForPlaces = async () => {
         console.log("Current Location Latitude: ", currentLocation.coords.latitude, ", Longitude: ", currentLocation.coords.longitude);
         try {
-            const fetchedPlaceId = await RandomlyPickFromFetchedPlaces(currentLocation.coords.latitude, currentLocation.coords.longitude, filterDistance, false);
+            const fetchedPlaceId = await RandomlyPickFromFetchedPlaces(currentLocation.coords.latitude, currentLocation.coords.longitude, props.filterDistance, false);
             if (fetchedPlaceId) {
                 console.log("Fetched Place ID: ", fetchedPlaceId);
                 const placeDetails = await getPlaceDetailsById(fetchedPlaceId);
-                setRandomChoice(placeDetails);
+                props.setRandomChoice(placeDetails);
             } else {
                 console.log("No new place was fetched or inserted.");
             }
@@ -126,7 +140,7 @@ export default function Navbar({ setRandomChoice, setFilterOn, updateScreen, ini
                 onPress={() => { 
                     hapticFeedback(); 
                     handleToHome();
-                    setFilterOn(true);
+                    props.setFilterOn(true);
                 }}
             >
                 <Text style={{ fontSize: 14, fontWeight: 700 }}>Filter:</Text>
@@ -142,7 +156,7 @@ export default function Navbar({ setRandomChoice, setFilterOn, updateScreen, ini
                     onPress={() => { 
                         hapticFeedback(); 
                         handleToHome();
-                        setFilterOn(true);
+                       props.setFilterOn(true);
                     }}
                 >
                     <View style={[styles.navbtn, styles.btnContent, isPressingFilter && { top: 3 }]}>

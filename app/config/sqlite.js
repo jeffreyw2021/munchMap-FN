@@ -79,7 +79,7 @@ export const initDB = () => {
     });
 
     db.transaction(tx => {
-        // Check and create the FetchedLocations table if it doesn't exist
+        // Check and create the SavedPlaces table if it doesn't exist
         tx.executeSql(
             `SELECT 1 FROM SavedPlaces LIMIT 1;`,
             [],
@@ -99,6 +99,34 @@ export const initDB = () => {
                     [],
                     () => console.log('SavedPlaces table created successfully'),
                     (_, error) => console.error('Failed to create SavedPlaces table', error)
+                );
+                return false;
+            }
+        );
+    });
+
+    db.transaction(tx => {
+        // Check and create the UserProfile table if it doesn't exist
+        tx.executeSql(
+            `SELECT 1 FROM UserProfile LIMIT 1;`,
+            [],
+            () => {
+                console.log('UserProfile table already exists');
+            },
+            () => {
+                tx.executeSql(
+                    `CREATE TABLE IF NOT EXISTS UserProfile (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        username TEXT,
+                        uid INTEGER,
+                        level INTEGER,
+                        email TEXT,
+                        phone TEXT,
+                        password TEXT
+                    );`,
+                    [],
+                    () => console.log('UserProfile table created successfully'),
+                    (_, error) => console.error('Failed to create UserProfile table', error)
                 );
                 return false;
             }

@@ -12,7 +12,7 @@ export default function Filter({ props }) {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
     const [filterJson, setFilterJson] = useState({
-        wishlists: ['Default'],
+        wishlists: ['None', 'Default'],
         cuisine: ['All'],
         distance: {
             500: '≤500m',
@@ -25,6 +25,7 @@ export default function Filter({ props }) {
     });
 
     const [pendingFilterDistance, setPendingFilterDistance] = useState(props.filterDistance);
+    const [pendingFilterWishlist, setPendingFilterWishlist] = useState(props.filterWishlist);
 
     const position = useRef(new Animated.Value(500)).current;
     useEffect(() => {
@@ -61,11 +62,25 @@ export default function Filter({ props }) {
                                 <TouchableOpacity
                                     key={index}
                                     style={styles.filterBtn}
-                                    onPress={() => { hapticFeedback(); }}
+                                    onPress={() => { 
+                                        hapticFeedback(); 
+                                        setPendingFilterWishlist(item);
+                                    }}
                                 >
-                                    <View style={styles.filterBtnContent}>
-                                        <Text style={{ fontSize: 14 }}>{item}</Text>
-                                    </View>
+                                    {(pendingFilterWishlist === item) ? (
+                                        <LinearGradient
+                                            style={styles.filterBtnContent}
+                                            colors={['#98FF47', '#D0FF6B']}
+                                            start={{ x: 0, y: 0 }}
+                                            end={{ x: 1, y: 0 }}
+                                        >
+                                             <Text style={{ fontSize: 14 }}>{item}</Text>
+                                        </LinearGradient>
+                                    ) : (
+                                        <View style={styles.filterBtnContent}>
+                                            <Text style={{ fontSize: 14 }}>{item}</Text>
+                                        </View>
+                                    )}
                                 </TouchableOpacity>
                             ))}
                         </ScrollView>
@@ -165,7 +180,7 @@ export default function Filter({ props }) {
                         <View style={styles.bottomBtnShadow} />
                     </TouchableOpacity>
                 </View>
-            </Animated.View>
-        </View>
+            </Animated.View >
+        </View >
     )
 }

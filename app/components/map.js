@@ -12,13 +12,25 @@ import Picko from '../assets/images/picko.png';
 import * as Haptics from 'expo-haptics';
 import * as Location from 'expo-location';
 import haversine from 'haversine-distance';
-import { getFetchedLocationsTable, getPlacesTable, fetchNearbyPlaces } from '../api/fetchNearbyPlaces';
+import { getSavedPlacesTable } from '../api/fetchNearbyPlaces';
 
-export default function Map({ location, setGlobalCurrentLocation, globalRandomChoice, exitRandomChoice, setExitRandomChoice }) {
+export default function Map({ location, ...props }) {
 
     // const screenWidth = Dimensions.get("window").width;
     // const screenHeight = Dimensions.get("window").height;
 
+    const [savedPlaces, setSavedPlaces] = useState(null);
+    useEffect(() => {
+        getSavedPlacesTable()
+            .then(places => {
+                setSavedPlaces(places);
+            })
+            .catch(error => {
+                console.error('Failed to fetch saved places: ', error);
+            });
+    }, []);
+
+    console.log("location: ", location)
     const [useGoogleMaps, setUseGoogleMaps] = useState(false);
     const [resetPressing, setResetPressing] = useState(false);
     const hapticFeedback = () => {
@@ -28,7 +40,7 @@ export default function Map({ location, setGlobalCurrentLocation, globalRandomCh
     mapRef = useRef(null);
     const [mapZoom, setMapZoom] = useState(17);
     const [altitude, setAltitude] = useState(3200);
-    const [initialLocation, setInitialLocation] = useState(location.location || null);
+    const [initialLocation, setInitialLocation] = useState(location || null);
     const [currentLocation, setCurrentLocation] = useState(null);
     const [autoResetCamera, setAutoResetCamera] = useState(true);
 
@@ -39,17 +51,17 @@ export default function Map({ location, setGlobalCurrentLocation, globalRandomCh
     }, [initialLocation]);
     useEffect(() => {
         if (currentLocation) {
-            setGlobalCurrentLocation(currentLocation);
+            props.setGlobalCurrentLocation(currentLocation);
         }
     }, [currentLocation]);
-    const [randomChoice, setRandomChoice] = useState(globalRandomChoice);
+    const [randomChoice, setRandomChoice] = useState(props.randomChoice);
     useEffect(() => {
-        if (globalRandomChoice) {
-            const choice = typeof globalRandomChoice === 'string' ? JSON.parse(globalRandomChoice) : globalRandomChoice;
+        if (props.randomChoice) {
+            const choice = typeof props.randomChoice === 'string' ? JSON.parse(props.randomChoice) : props.randomChoice;
             setRandomChoice(choice);
             moveMapCamera({ latitude: choice.lat, longitude: choice.lon })
         }
-    }, [globalRandomChoice]);
+    }, [props.randomChoice]);
 
     useEffect(() => {
         let unsubscribe;
@@ -113,12 +125,12 @@ export default function Map({ location, setGlobalCurrentLocation, globalRandomCh
     }
 
     useEffect(() => {
-        if(exitRandomChoice) {
+        if(props.exitRandomChoice) {
             setRandomChoice(null);
             resetMapCamera(currentLocation);
-            setExitRandomChoice(false);
+            props.setExitRandomChoice(false);
         }
-    }, [exitRandomChoice]);
+    }, [props.exitRandomChoice]);
 
     return (
         <View style={styles.container}>

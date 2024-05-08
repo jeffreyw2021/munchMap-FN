@@ -12,7 +12,7 @@ import * as SQLite from 'expo-sqlite';
 
 const db = SQLite.openDatabase('places.db');
 
-export default function DetailModal({ globalCurrentLocation, filterDistance, randomChoice, setRandomChoice, setExitRandomChoice }) {
+export default function DetailModal({props}) {
 
     const [detail, setDetail] = useState(null);
     const processDetail = (detail) => {
@@ -38,10 +38,10 @@ export default function DetailModal({ globalCurrentLocation, filterDistance, ran
     const [tags, setTags] = useState(null);
     const [isSaved, setIsSaved] = useState(false);
     useEffect(() => {
-        if (randomChoice) {
-            setDetail(randomChoice);
-            setTags(processDetail(randomChoice));
-            isPlaceSaved(randomChoice.id)
+        if (props.randomChoice) {
+            setDetail(props.randomChoice);
+            setTags(processDetail(props.randomChoice));
+            isPlaceSaved(props.randomChoice.id)
                 .then(isSaved => {
                     setIsSaved(isSaved);
                 })
@@ -49,7 +49,7 @@ export default function DetailModal({ globalCurrentLocation, filterDistance, ran
                     console.error('Failed to check if place is saved: ', error);
                 });
         }
-    }, [randomChoice]);
+    }, [props.randomChoice]);
     useEffect(() => {
         if (isSaved) {
             console.log("isSaved: ", isSaved);
@@ -116,16 +116,16 @@ export default function DetailModal({ globalCurrentLocation, filterDistance, ran
             duration: 300,
             useNativeDriver: true
         }).start(() => {
-            setRandomChoice(null);
-            setExitRandomChoice(true);
+            props.setRandomChoice(null);
+            props.setExitRandomChoice(true);
         });
     };
     const [currentLocation, setCurrentLocation] = useState(null);
     useEffect(() => {
-        if (globalCurrentLocation) {
-            setCurrentLocation(globalCurrentLocation);
+        if (props.globalCurrentLocation) {
+            setCurrentLocation(props.globalCurrentLocation);
         }
-    }, [globalCurrentLocation]);
+    }, [props.globalCurrentLocation]);
 
     const getPlaceDetailsById = async (placeId) => {
         return new Promise((resolve, reject) => {
@@ -151,11 +151,11 @@ export default function DetailModal({ globalCurrentLocation, filterDistance, ran
     const rollForPlaces = async () => {
         console.log("Current Location Latitude: ", currentLocation.coords.latitude, ", Longitude: ", currentLocation.coords.longitude);
         try {
-            const fetchedPlaceId = await RandomlyPickFromFetchedPlaces(currentLocation.coords.latitude, currentLocation.coords.longitude, filterDistance, false);
+            const fetchedPlaceId = await RandomlyPickFromFetchedPlaces(currentLocation.coords.latitude, currentLocation.coords.longitude, props.filterDistance, false);
             if (fetchedPlaceId) {
                 console.log("Fetched Place ID: ", fetchedPlaceId);
                 const placeDetails = await getPlaceDetailsById(fetchedPlaceId);
-                setRandomChoice(placeDetails);
+                props.setRandomChoice(placeDetails);
             } else {
                 console.log("No new place was fetched or inserted.");
             }
@@ -250,7 +250,7 @@ export default function DetailModal({ globalCurrentLocation, filterDistance, ran
             }]}>
                 <View style={styles.topContent}>
                     <View style={{ justifyContent: 'flex-start', alignItems: 'flex-start', gap: 8 }}>
-                        <Text style={{ fontWeight: '600', fontSize: 20 }}>{detail?.name}</Text>
+                        <Text style={{ fontWeight: '600', fontSize: 20 }} ellipsizeMode='tail'>{detail?.name}</Text>
                         <View style={styles.tagContainer}>
                             {tags && tags.map((tag, index) => (
                                 <View key={index} style={styles.tag}>

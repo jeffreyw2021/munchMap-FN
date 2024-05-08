@@ -45,6 +45,7 @@ export default function GlobalController() {
     //Filter
     const [filterOn, setFilterOn] = useState(false);
     const [filterDistance, setFilterDistance] = useState(0.5);
+    const [filterWishlist, setFilterWishlist] = useState('None');
     useEffect(() => {
         console.log("Distance: ", filterDistance);
     }, [filterDistance]);
@@ -52,6 +53,9 @@ export default function GlobalController() {
     //Randomize Choice
     const [randomChoice, setRandomChoice] = useState(null);
     const [exitRandomChoice, setExitRandomChoice] = useState(false);
+    useEffect(()=>{
+        updateScreen("home");
+    },[randomChoice])
 
     //error handling
     if (error) {
@@ -67,11 +71,13 @@ export default function GlobalController() {
             <View style={{ flex: 1 }}>
                 {randomChoice && (
                     <DetailModal
-                        randomChoice={randomChoice}
-                        setRandomChoice={setRandomChoice}
-                        setExitRandomChoice={setExitRandomChoice}
-                        globalCurrentLocation={globalCurrentLocation}
-                        filterDistance={filterDistance}
+                        props={{
+                            randomChoice,
+                            setRandomChoice,
+                            setExitRandomChoice,
+                            globalCurrentLocation,
+                            filterDistance
+                        }}
                     />
                 )}
                 {filterOn && (
@@ -80,29 +86,41 @@ export default function GlobalController() {
                             filterOn,
                             setFilterOn,
                             filterDistance,
-                            setFilterDistance
+                            setFilterDistance,
+                            filterWishlist,
+                            setFilterWishlist
                         }}
                     />
                 )}
                 <View style={{ flex: 1 }}>
                     <Navbar
-                        updateScreen={updateScreen}
-                        setFilterOn={setFilterOn}
-                        initialLocation={location}
-                        globalCurrentLocation={globalCurrentLocation}
-                        filterDistance={filterDistance}
-                        setRandomChoice={setRandomChoice}
+                        props={{
+                            currentScreen,
+                            updateScreen,
+                            setFilterOn,
+                            location,
+                            globalCurrentLocation,
+                            filterDistance,
+                            setRandomChoice,
+                            filterWishlist
+                        }}
                     />
                     {currentScreen === 'home' &&
                         <Home
+                            props={{
+                                setGlobalCurrentLocation,
+                                randomChoice,
+                                exitRandomChoice,
+                                setExitRandomChoice
+                            }}
                             location={location}
-                            setGlobalCurrentLocation={setGlobalCurrentLocation}
-                            randomChoice={randomChoice}
-                            exitRandomChoice={exitRandomChoice}
-                            setExitRandomChoice={setExitRandomChoice}
                         />
                     }
-                    {currentScreen === 'stores' && <Stores />}
+                    {currentScreen === 'stores' &&
+                        <Stores
+                            setRandomChoice = {setRandomChoice}
+                        />
+                    }
                 </View>
             </View>
         );

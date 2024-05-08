@@ -5,18 +5,12 @@ import Searchbar from '../components/searchbar';
 import Map from '../components/map';
 import Filter from '../components/filter';
 
-export default function Home({ location, setGlobalCurrentLocation, randomChoice, exitRandomChoice, setExitRandomChoice }) {
+export default function Home({ location, props }) {
 
     return (
         <View style={styles.container}>
             <Searchbar />
-            <Map
-                location={{ location }}
-                setGlobalCurrentLocation={setGlobalCurrentLocation}
-                globalRandomChoice={randomChoice}
-                exitRandomChoice={exitRandomChoice}
-                setExitRandomChoice={setExitRandomChoice}
-            />
+            <Map {...props} location={location} />
         </View>
     );
 }
