@@ -16,11 +16,14 @@ export default function DetailModal({props}) {
 
     const [detail, setDetail] = useState(null);
     const processDetail = (detail) => {
-        const attributesToCheck = ['amenity', 'cuisine', 'craft', 'shop'];
+        let attributesToCheck = ['amenity', 'cuisine', 'craft', 'shop'];
         let output = [];
 
         if (detail && detail.attributes) {
             const attributes = typeof detail.attributes === 'string' ? JSON.parse(detail.attributes) : detail.attributes;
+            if(attributes['cuisine'] && attributes['cuisine'] != ''){
+                attributesToCheck = ['cuisine', 'craft', 'shop'];
+            }
 
             attributesToCheck.forEach(attr => {
                 if (attributes[attr]) {
@@ -33,7 +36,7 @@ export default function DetailModal({props}) {
             });
         }
 
-        return output;
+        return output.slice(0, 3);
     };
     const [tags, setTags] = useState(null);
     const [isSaved, setIsSaved] = useState(false);
@@ -186,6 +189,7 @@ export default function DetailModal({props}) {
                                         (_, error) => console.error(`Failed to save place ${place.name}: `, error)
                                     );
                                     setIsSaved(true);
+                                    props.setMapRenderFlag(!props.mapRenderFlag);
                                 } else {
                                     console.log('Place already saved in savedPlaces');
                                     setIsSaved(true);
@@ -209,6 +213,7 @@ export default function DetailModal({props}) {
                 (_, result) => {
                     if (result.rowsAffected > 0) {
                         console.log(`Place with ID ${placeId} removed from savedPlaces successfully.`);
+                        props.setMapRenderFlag(!props.mapRenderFlag);
                         setIsSaved(false);
                     } else {
                         console.log(`No place found with ID ${placeId} in savedPlaces or failed to delete.`);

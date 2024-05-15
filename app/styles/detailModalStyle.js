@@ -68,6 +68,7 @@ export default StyleSheet.create({
         borderRadius: 6,
         backgroundColor: '#fff',
         zIndex: -1,
+        overflow:'hidden'
     },
     reRollBtnBackgroundInner:{
         height:40

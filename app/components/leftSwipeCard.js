@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, forwardRef } from 'react';
 import { View, Text, Dimensions, TouchableOpacity, TouchableHighlight, ScrollView } from 'react-native';
 import styles from '../styles/storesStyle';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
@@ -12,17 +12,26 @@ const screenWidth = Dimensions.get("window").width;
 const screenHeight = Dimensions.get("window").height;
 const leftSwipeWidth = 70;
 
-export default function LeftSwipeCard({props}) {
+const LeftSwipeCard = forwardRef(({ props }, ref) => {
+
+    useEffect(() => {
+        if (ref && ref.current) {
+            ref.current.scrollTo({ x: 0, animated: false });
+        }
+    }, [props.place.id]);
 
     const hapticFeedback = () => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
     const processDetail = (detail) => {
-        const attributesToCheck = ['amenity', 'cuisine', 'craft', 'shop'];
+        let attributesToCheck = ['amenity', 'cuisine', 'craft', 'shop'];
         let output = [];
 
         if (detail && detail.attributes) {
             const attributes = typeof detail.attributes === 'string' ? JSON.parse(detail.attributes) : detail.attributes;
+            if (attributes['cuisine'] && attributes['cuisine'] != '') {
+                attributesToCheck = ['cuisine', 'craft', 'shop'];
+            }
 
             attributesToCheck.forEach(attr => {
                 if (attributes[attr]) {
@@ -35,7 +44,7 @@ export default function LeftSwipeCard({props}) {
             });
         }
 
-        return output;
+        return output.slice(0, 3);
     };
     const tagsString = processDetail(props.place).slice(0, 3).join(', ');
 
@@ -58,7 +67,7 @@ export default function LeftSwipeCard({props}) {
         });
 
         props.setCheckSavedPlacesFlag(!props.checkSavedPlacesFlag);
-    };    
+    };
 
     return (
         <View
@@ -66,6 +75,7 @@ export default function LeftSwipeCard({props}) {
         >
             <View style={styles.placeCardHead} />
             <ScrollView
+                ref={ref}
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={[styles.placeCard, { width: screenWidth + leftSwipeWidth }]}
@@ -80,7 +90,7 @@ export default function LeftSwipeCard({props}) {
                             props.isFirstItem && { paddingTop: 30 }
                         ]}
                         activeOpacity={0.6}
-                        onPress={()=>{
+                        onPress={() => {
                             hapticFeedback();
                             props.setRandomChoice(props.place);
                         }}
@@ -96,9 +106,10 @@ export default function LeftSwipeCard({props}) {
                 </View>
                 <TouchableOpacity
                     style={[styles.placeCardTail, { width: leftSwipeWidth }]}
-                    onPress={()=>{
+                    onPress={() => {
                         hapticFeedback();
                         removePlaceFromSavedPlaces(props.place.id);
+                        props.resetScrollPositions();
                     }}
                 >
                     <FontAwesomeIcon icon={faTrashCan} size={20} color={"#000"}></FontAwesomeIcon>
@@ -106,4 +117,6 @@ export default function LeftSwipeCard({props}) {
             </ScrollView>
         </View>
     )
-}
+});
+
+export default LeftSwipeCard;

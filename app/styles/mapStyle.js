@@ -1,4 +1,6 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Dimensions } from 'react-native';
+
+const screenWidth = Dimensions.get("window").width;
 
 export default StyleSheet.create({
     container:{
@@ -11,15 +13,30 @@ export default StyleSheet.create({
         height: '120%',
         marginTop: '-25%'
     },
+    filterIndicator:{
+        backgroundColor: "#fff",
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        flexDirection:'row',
+        columnGap: 5,
+        borderRadius: 6,
+        borderColor: "#000",
+        borderWidth: 1,
+        alignItems: 'center',
+        alignSelf: 'flex-start',
+        position: 'absolute',
+        left: 60,
+        pointerEvents: 'box-none'
+    },
     overcast:{
         position:'absolute', 
         right: 30, 
         bottom: 97,
-        width: '100%',
-        height: 40, 
+        width: screenWidth,
         alignItems: 'flex-end',
         justifyContent: 'flex-end',
-        zIndex: 10
+        zIndex: 10,
+        pointerEvents: 'box-none'
     },
     resetMapBtn:{
         height: 40,

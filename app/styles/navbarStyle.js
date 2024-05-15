@@ -11,18 +11,6 @@ export default StyleSheet.create({
         zIndex: 10,
         pointerEvents: 'box-none'
     },
-    filterIndicator:{
-        backgroundColor: "#fff",
-        paddingHorizontal: 10,
-        paddingVertical: 6,
-        flexDirection:'row',
-        columnGap: 5,
-        borderRadius: 6,
-        borderColor: "#000",
-        borderWidth: 1,
-        alignItems: 'center',
-        alignSelf: 'flex-start'
-    },
 
     //navbar
     navbar:{

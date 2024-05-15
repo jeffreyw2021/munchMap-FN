@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView, Animated } from 'react-native
 import styles from '../styles/filterStyle';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
+import { getSavedPlacesTable, getWishlistsTable, getTable } from '../api/fetchNearbyPlaces';
 
 export default function Filter({ props }) {
 
@@ -12,7 +13,7 @@ export default function Filter({ props }) {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
     const [filterJson, setFilterJson] = useState({
-        wishlists: ['None', 'Default'],
+        wishlists: ['None', 'All Saved'],
         cuisine: ['All'],
         distance: {
             500: '≤500m',
@@ -45,6 +46,8 @@ export default function Filter({ props }) {
         });
     };
 
+    const [wishlists, setWishlists] = useState(null);
+ 
     return (
         <View style={styles.overcast}>
             <Animated.View style={[styles.filterBlock, {
@@ -165,6 +168,8 @@ export default function Filter({ props }) {
                         onPress={() => {
                             hapticFeedback();
                             props.setFilterDistance(pendingFilterDistance);
+                            props.setFilterWishlist(pendingFilterWishlist);
+                            props.setMapRenderFlag(!props.mapRenderFlag);
                             closeFilter();
                         }}
                         activeOpacity={1}

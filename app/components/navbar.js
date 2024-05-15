@@ -21,18 +21,18 @@ export default function Navbar({ props }) {
     let rollBtnGradWidth = useRef(new Animated.Value(0)).current;
 
 
-    useEffect(()=>{
-        if(props.currentScreen){
-            if(props.currentScreen == "home"){
+    useEffect(() => {
+        if (props.currentScreen) {
+            if (props.currentScreen == "home") {
                 setIsInHome(true);
                 setIsInStores(false);
             }
-            else if(props.currentScreen == "stores"){
+            else if (props.currentScreen == "stores") {
                 setIsInStores(true);
                 setIsInHome(false);
             }
         }
-    },[props.currentScreen])
+    }, [props.currentScreen])
 
     const handleToHome = () => {
         props.updateScreen("home");
@@ -91,7 +91,7 @@ export default function Navbar({ props }) {
     //     console.log("Global Location: ", currentLocation);
     // },[currentLocation]);
     useEffect(() => {
-        if(props.globalCurrentLocation){
+        if (props.globalCurrentLocation) {
             setCurrentLocation(props.globalCurrentLocation);
         }
     }, [props.globalCurrentLocation]);
@@ -103,7 +103,7 @@ export default function Navbar({ props }) {
                     [placeId],
                     (_, { rows }) => {
                         if (rows.length > 0) {
-                            resolve(rows._array[0]);  
+                            resolve(rows._array[0]);
                         } else {
                             reject("No place found with the given ID.");
                         }
@@ -131,21 +131,20 @@ export default function Navbar({ props }) {
             console.error("Error during fetching and retrieving place details: ", error);
         }
     };
-    
+
+    const [filterText, setFilterText] = useState("Anything Nearby");
+    useEffect(() => {
+        if (props.filterWishlist) {
+            if (props.filterWishlist === 'None') {
+                setFilterText("Anything Nearby");
+            } else {
+                setFilterText(props.filterWishlist);
+            }
+        }
+    }, [props.filterWishlist]);
+
     return (
         <View style={styles.overcast}>
-            <TouchableOpacity
-                style={[styles.filterIndicator, isInStores && { opacity: 0, pointerEvents: 'none' }]}
-                activeOpacity={0.8}
-                onPress={() => { 
-                    hapticFeedback(); 
-                    handleToHome();
-                    props.setFilterOn(true);
-                }}
-            >
-                <Text style={{ fontSize: 14, fontWeight: 700 }}>Filter:</Text>
-                <Text style={{ fontSize: 12, fontWeight: 400 }}>Anything Nearby</Text>
-            </TouchableOpacity>
             <View style={styles.navbar}>
 
                 <TouchableOpacity
@@ -153,10 +152,10 @@ export default function Navbar({ props }) {
                     activeOpacity={1}
                     onPressIn={() => setIsPressingFilter(true)}
                     onPressOut={() => setIsPressingFilter(false)}
-                    onPress={() => { 
-                        hapticFeedback(); 
+                    onPress={() => {
+                        hapticFeedback();
                         handleToHome();
-                       props.setFilterOn(true);
+                        props.setFilterOn(true);
                     }}
                 >
                     <View style={[styles.navbtn, styles.btnContent, isPressingFilter && { top: 3 }]}>

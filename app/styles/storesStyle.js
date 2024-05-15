@@ -9,6 +9,7 @@ export default StyleSheet.create({
         width: '100%',
         justifyContent: 'space-between',
         alignItems: 'center',
+        backgroundColor:'#fff'
     },
     background: {
         position: 'absolute',
@@ -159,5 +160,53 @@ export default StyleSheet.create({
         borderRadius: 6,
         justifyContent: 'center',
         alignItems: 'center'
+    },
+
+    wishlistTop:{
+        paddingHorizontal: 30,
+        paddingVertical: 20,
+        width: '100%',
+        flexDirection:'row',
+        justifyContent:'space-between'
+    },
+    addWishlistBtnContent:{
+        height: 40,
+        paddingHorizontal: 12,
+        gap: 8,
+        flexDirection:'row',
+        justifyContent:'flex-start',
+        alignItems:'center',
+        borderRadius: 6,
+        borderWidth: 1,
+        borderColor: '#000',
+        backgroundColor: '#fff'
+    },
+    addWishlistBtnShadow:{
+        position:'absolute',
+        top: 3,
+        height: '100%',
+        width: '100%',
+        backgroundColor: '#000',
+        borderRadius: 6,
+        zIndex: -1
+    },
+    editBtnContent:{
+        height: 40,
+        width: 40,
+        justifyContent:'center',
+        alignItems:'center',
+        borderRadius: 6,
+        borderWidth: 1,
+        borderColor: '#000',
+        backgroundColor: '#fff'
+    },
+    editBtnShadow:{
+        position:'absolute',
+        top: 3,
+        height: '100%',
+        width: '100%',
+        backgroundColor: '#000',
+        borderRadius: 6,
+        zIndex: -1
     }
 });

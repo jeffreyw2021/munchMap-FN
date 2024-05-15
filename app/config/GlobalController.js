@@ -1,13 +1,12 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Platform, Text, View, StyleSheet, ActivityIndicator } from 'react-native';
 import Initial from '../screens/Initial';
-import Home from '../screens/Home';
-import Stores from '../screens/Stores';
 import Navbar from '../components/navbar';
 import * as Location from 'expo-location';
 import { initDB } from './sqlite';
 import Filter from '../components/filter';
 import DetailModal from '../components/detailModal';
+import AppNavigator from './AppNavigator';
 
 export default function GlobalController() {
 
@@ -53,9 +52,12 @@ export default function GlobalController() {
     //Randomize Choice
     const [randomChoice, setRandomChoice] = useState(null);
     const [exitRandomChoice, setExitRandomChoice] = useState(false);
-    useEffect(()=>{
+    useEffect(() => {
         updateScreen("home");
-    },[randomChoice])
+        // console.log("randomChoice: ", randomChoice || "no random choice")
+    }, [randomChoice])
+
+    const [mapRenderFlag, setMapRenderFlag] = useState(false);
 
     //error handling
     if (error) {
@@ -65,10 +67,11 @@ export default function GlobalController() {
             </View>
         );
     }
+
     else if (location) {
         // console.log("Location: ", location);
         return (
-            <View style={{ flex: 1 }}>
+            <View style={{ flex: 1, backgroundColor: '#fff' }}>
                 {randomChoice && (
                     <DetailModal
                         props={{
@@ -76,7 +79,9 @@ export default function GlobalController() {
                             setRandomChoice,
                             setExitRandomChoice,
                             globalCurrentLocation,
-                            filterDistance
+                            filterDistance,
+                            mapRenderFlag,
+                            setMapRenderFlag
                         }}
                     />
                 )}
@@ -88,12 +93,15 @@ export default function GlobalController() {
                             filterDistance,
                             setFilterDistance,
                             filterWishlist,
-                            setFilterWishlist
+                            setFilterWishlist,
+                            mapRenderFlag,
+                            setMapRenderFlag
                         }}
                     />
                 )}
                 <View style={{ flex: 1 }}>
                     <Navbar
+                        // navigation={navigation}
                         props={{
                             currentScreen,
                             updateScreen,
@@ -102,25 +110,34 @@ export default function GlobalController() {
                             globalCurrentLocation,
                             filterDistance,
                             setRandomChoice,
-                            filterWishlist
+                            filterWishlist,
                         }}
                     />
-                    {currentScreen === 'home' &&
-                        <Home
-                            props={{
-                                setGlobalCurrentLocation,
-                                randomChoice,
-                                exitRandomChoice,
-                                setExitRandomChoice
-                            }}
-                            location={location}
-                        />
-                    }
-                    {currentScreen === 'stores' &&
-                        <Stores
-                            setRandomChoice = {setRandomChoice}
-                        />
-                    }
+                    {currentScreen=='stores' && (<View style={{
+                        position:'absolute',
+                        bottom: 0,
+                        height: 110,
+                        width: '100%',
+                        backgroundColor: "#fff",
+                        borderTopColor: "#CFCFCF",
+                        borderTopWidth: 2,
+                        zIndex: 2
+                    }} />)}
+                    <AppNavigator
+                        location={location}
+                        currentScreen={currentScreen}
+                        homeProps={{
+                            setGlobalCurrentLocation,
+                            exitRandomChoice,
+                            setExitRandomChoice,
+                            filterDistance,
+                            filterWishlist,
+                            mapRenderFlag,
+                            setMapRenderFlag
+                        }}
+                        randomChoice={randomChoice}
+                        setRandomChoice={setRandomChoice}
+                    />
                 </View>
             </View>
         );

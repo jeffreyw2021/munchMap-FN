@@ -153,7 +153,7 @@ const getPlacesWithinRadius = async (lat, lon, radius) => {
             tx.executeSql(
                 `SELECT * FROM Places;`, [],
                 (_, { rows }) => {
-                    const validPlaces = rows._array.filter(place => isWithinRadius({lat, lon}, place, radius));
+                    const validPlaces = rows._array.filter(place => isWithinRadius({lat, lon}, place, radius*1000));
                     resolve(validPlaces);
                 },
                 (_, error) => {
@@ -164,6 +164,12 @@ const getPlacesWithinRadius = async (lat, lon, radius) => {
         });
     });
 };
+export const getSavedPlacesWithinRadius = (places, lat, lon, radius) => {
+    console.log(radius);
+    const validPlaces = places.filter(place => isWithinRadius({lat, lon}, place, radius*1000));
+    return (validPlaces);
+}
+
 export const RandomlyPickFromFetchedPlaces = async (lat, lon, searchRadius = 0.5, clearTable = false) => {
     if (clearTable) {
         clearPlacesTable();
@@ -207,12 +213,12 @@ export const RandomlyPickFromFetchedPlaces = async (lat, lon, searchRadius = 0.5
             return placeIds[randomIndex]; // Return the ID of a randomly picked place
         } else {
             console.log('No places found, attempting to fetch from local database...');
-            return fetchRandomPlaceFromLocal(lat, lon, searchRadius * 1000);
+            return fetchRandomPlaceFromLocal(lat, lon, searchRadius);
         }
     } catch (error) {
         console.error("Network or processing error occurred: ", error);
         console.log('Attempting to fetch random place from local database due to network error...');
-        return fetchRandomPlaceFromLocal(lat, lon, searchRadius * 1000);
+        return fetchRandomPlaceFromLocal(lat, lon, searchRadius);
     }
 };
 
@@ -286,3 +292,39 @@ export const getSavedPlacesTable = async () => {
         });
     });
 };
+export const getWishlistsTable = async () => {
+    return new Promise((resolve, reject) => {
+        db.transaction(tx => {
+            tx.executeSql(
+                `SELECT * FROM Wishlists;`,
+                [],
+                (_, { rows }) => {
+                    console.log('Wishlists retrieved successfully');
+                    resolve(rows._array);
+                },
+                (_, error) => {
+                    console.error('Failed to retrieve Wishlists: ', error);
+                    reject(error);
+                }
+            );
+        });
+    });
+};
+export const getTable = async (tableName) => {
+    return new Promise((resolve, reject) => {
+        db.transaction(tx => {
+            tx.executeSql(
+                `SELECT * FROM ${tableName};`,
+                [],
+                (_, { rows }) => {
+                    console.log('Wishlists retrieved successfully');
+                    resolve(rows._array);
+                },
+                (_, error) => {
+                    console.error('Failed to retrieve Wishlists: ', error);
+                    reject(error);
+                }
+            );
+        });
+    });
+}

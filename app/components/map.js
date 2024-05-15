@@ -12,25 +12,44 @@ import Picko from '../assets/images/picko.png';
 import * as Haptics from 'expo-haptics';
 import * as Location from 'expo-location';
 import haversine from 'haversine-distance';
-import { getSavedPlacesTable } from '../api/fetchNearbyPlaces';
+import { getSavedPlacesTable, getSavedPlacesWithinRadius } from '../api/fetchNearbyPlaces';
 
-export default function Map({ location, ...props }) {
+export default function Map({ props, randomChoice, location, currentScreen }) {
 
     // const screenWidth = Dimensions.get("window").width;
     // const screenHeight = Dimensions.get("window").height;
 
     const [savedPlaces, setSavedPlaces] = useState(null);
+    const [showPlaces, setShowPLaces] = useState(null);
     useEffect(() => {
         getSavedPlacesTable()
             .then(places => {
-                setSavedPlaces(places);
+                let validPlaces = getSavedPlacesWithinRadius(places, location.coords.latitude, location.coords.longitude, props.filterDistance);
+                setSavedPlaces(validPlaces);
+                if (props.filterWishlist === 'All Saved' || 'None') {
+                    setShowPLaces(validPlaces);
+                }
             })
             .catch(error => {
                 console.error('Failed to fetch saved places: ', error);
             });
     }, []);
+    useEffect(() => {
+        getSavedPlacesTable()
+            .then(places => {
+                let validPlaces = getSavedPlacesWithinRadius(places, location.coords.latitude, location.coords.longitude, props.filterDistance);
+                setSavedPlaces(validPlaces);
+                if (props.filterWishlist === 'All Saved' || 'None') {
+                    setShowPLaces(validPlaces);
+                }
+            })
+            .catch(error => {
+                console.error('Failed to fetch saved places: ', error);
+            });
+    }, [props.mapRenderFlag]);
 
-    console.log("location: ", location)
+
+    // console.log("location: ", location)
     const [useGoogleMaps, setUseGoogleMaps] = useState(false);
     const [resetPressing, setResetPressing] = useState(false);
     const hapticFeedback = () => {
@@ -39,7 +58,7 @@ export default function Map({ location, ...props }) {
 
     mapRef = useRef(null);
     const [mapZoom, setMapZoom] = useState(17);
-    const [altitude, setAltitude] = useState(3200);
+    const [altitude, setAltitude] = useState(3000);
     const [initialLocation, setInitialLocation] = useState(location || null);
     const [currentLocation, setCurrentLocation] = useState(null);
     const [autoResetCamera, setAutoResetCamera] = useState(true);
@@ -54,14 +73,6 @@ export default function Map({ location, ...props }) {
             props.setGlobalCurrentLocation(currentLocation);
         }
     }, [currentLocation]);
-    const [randomChoice, setRandomChoice] = useState(props.randomChoice);
-    useEffect(() => {
-        if (props.randomChoice) {
-            const choice = typeof props.randomChoice === 'string' ? JSON.parse(props.randomChoice) : props.randomChoice;
-            setRandomChoice(choice);
-            moveMapCamera({ latitude: choice.lat, longitude: choice.lon })
-        }
-    }, [props.randomChoice]);
 
     useEffect(() => {
         let unsubscribe;
@@ -106,7 +117,7 @@ export default function Map({ location, ...props }) {
                 heading: 0,
                 altitude: altitude,
                 zoom: mapZoom
-            }, { duration: 200 });
+            }, { duration: 400 });
         }
     };
     const moveMapCamera = (location) => {
@@ -120,17 +131,33 @@ export default function Map({ location, ...props }) {
                 heading: 0,
                 altitude: altitude,
                 zoom: mapZoom
-            }, { duration: 200 });
+            }, { duration: 400 });
         }
     }
 
     useEffect(() => {
-        if(props.exitRandomChoice) {
-            setRandomChoice(null);
+        // console.log("randomChoice: ", randomChoice)
+        if (randomChoice) {
+            moveMapCamera({ latitude: randomChoice.lat, longitude: randomChoice.lon })
+        } else {
             resetMapCamera(currentLocation);
-            props.setExitRandomChoice(false);
+            if (showPlaces) {
+                setShowPLaces(showPlaces.sort((a, b) => b.lon - a.lon));
+            }
         }
-    }, [props.exitRandomChoice]);
+    }, [randomChoice]);
+
+    const [filterText, setFilterText] = useState("Anything Nearby");
+    useEffect(() => {
+        if (props.filterWishlist) {
+            if (props.filterWishlist === 'None') {
+                setFilterText("Anything Nearby");
+            } else {
+                setFilterText(props.filterWishlist);
+            }
+        }
+    }, [props.filterWishlist]);
+
 
     return (
         <View style={styles.container}>
@@ -150,7 +177,7 @@ export default function Map({ location, ...props }) {
                 showsIndoorLevelPicker={false}
                 zoomEnabled={true}
                 pitchEnabled={false}
-                rotateEnabled={true}
+                rotateEnabled={false}
                 loadingEnabled={true}
                 showsUserLocation={!randomChoice}
                 followsUserLocation={(!randomChoice && autoResetCamera)}
@@ -163,19 +190,60 @@ export default function Map({ location, ...props }) {
                 onPanDrag={() => { setAutoResetCamera(false) }}
             >
 
-                {!randomChoice && (<Marker
-                    coordinate={{
-                        latitude: currentLocation ? currentLocation.coords.latitude : initialLocation.coords.latitude,
-                        longitude: currentLocation ? currentLocation.coords.longitude : initialLocation.coords.longitude
-                    }}
-                    zIndex={1}
-                    priority="High"
-                    collapsable={false}
-                >
-                    <View style={{ justifyContent: 'center', alignItems: 'center', gap: 0 }}>
-                        <Image source={Picko} style={{ width: 47.5, height: 42, marginRight: 5.5 }} />
-                    </View>
-                </Marker>)}
+                {(!randomChoice && showPlaces) &&
+                    showPlaces
+                        .sort((a, b) => b.lon - a.lon)
+                        .map((place, index) => {
+                            // console.log(place);
+                            const size = 0.8;
+
+                            return (
+                                <Marker
+                                    key={index}
+                                    coordinate={{
+                                        latitude: place.lat,
+                                        longitude: place.lon
+                                    }}
+                                    zIndex={2}
+                                >
+                                    <TouchableOpacity
+                                        activeOpacity={0.8}
+                                        style={{ zIndex: 2 }}
+                                        onPress={() => {
+                                            props.setRandomChoice(place);
+                                        }}
+                                    >
+                                        <Icon size={size} />
+                                        <View style={{ height: 43 * size, width: '100%', position: 'absolute', top: 0, justifyContent: 'center', alignItems: 'center' }}>
+                                            <Text style={{ fontSize: 26 * size }}>{place.emoji}</Text>
+                                        </View>
+                                    </TouchableOpacity>
+                                </Marker>
+                            )
+                        })}
+
+                {!randomChoice && (
+                    <Marker
+                        coordinate={{
+                            latitude: currentLocation ? currentLocation.coords.latitude : initialLocation.coords.latitude,
+                            longitude: currentLocation ? currentLocation.coords.longitude : initialLocation.coords.longitude
+                        }}
+                        zIndex={1}
+                        priority="High"
+                        collapsable={false}
+                    >
+                        <View
+                            style={{
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                gap: 0,
+                                zIndex: 10
+                            }}
+                        >
+                            <Image source={Picko} style={{ width: 47.5, height: 42, marginRight: 5.5 }} />
+                        </View>
+                    </Marker>
+                )}
 
                 {randomChoice &&
                     (() => {
@@ -203,6 +271,19 @@ export default function Map({ location, ...props }) {
 
             </MapView>
             <View style={styles.overcast}>
+                <TouchableOpacity
+                    style={[styles.filterIndicator, (currentScreen != 'home') && { opacity: 0, pointerEvents: 'none' }]}
+                    activeOpacity={0.8}
+                    onPress={() => {
+                        hapticFeedback();
+                        handleToHome();
+                        props.setFilterOn(true);
+                    }}
+                >
+                    <Text style={{ fontSize: 14, fontWeight: 700 }}>Filter:</Text>
+                    <Text style={{ fontSize: 12, fontWeight: 400 }}>{filterText}</Text>
+                </TouchableOpacity>
+
                 <TouchableOpacity
                     onPressIn={() => { setResetPressing(true); }}
                     onPressOut={() => setResetPressing(false)}
