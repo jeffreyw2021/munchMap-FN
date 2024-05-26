@@ -15,16 +15,16 @@ const db = SQLite.openDatabase('places.db');
 export default function DetailModal({props}) {
 
     const [detail, setDetail] = useState(null);
-    const processDetail = (detail) => {
+    const processDetail = (detail, processData = true) => {
         let attributesToCheck = ['amenity', 'cuisine', 'craft', 'shop'];
         let output = [];
-
+    
         if (detail && detail.attributes) {
             const attributes = typeof detail.attributes === 'string' ? JSON.parse(detail.attributes) : detail.attributes;
-            if(attributes['cuisine'] && attributes['cuisine'] != ''){
+            if (processData && attributes['cuisine'] && attributes['cuisine'] !== '') {
                 attributesToCheck = ['cuisine', 'craft', 'shop'];
             }
-
+    
             attributesToCheck.forEach(attr => {
                 if (attributes[attr]) {
                     if (attr === 'cuisine') {
@@ -35,15 +35,15 @@ export default function DetailModal({props}) {
                 }
             });
         }
-
+    
         return output.slice(0, 3);
-    };
+    };    
     const [tags, setTags] = useState(null);
     const [isSaved, setIsSaved] = useState(false);
     useEffect(() => {
         if (props.randomChoice) {
             setDetail(props.randomChoice);
-            setTags(processDetail(props.randomChoice));
+            setTags(processDetail(props.randomChoice, false));
             isPlaceSaved(props.randomChoice.id)
                 .then(isSaved => {
                     setIsSaved(isSaved);
@@ -154,7 +154,7 @@ export default function DetailModal({props}) {
     const rollForPlaces = async () => {
         console.log("Current Location Latitude: ", currentLocation.coords.latitude, ", Longitude: ", currentLocation.coords.longitude);
         try {
-            const fetchedPlaceId = await RandomlyPickFromFetchedPlaces(currentLocation.coords.latitude, currentLocation.coords.longitude, props.filterDistance, false);
+            const fetchedPlaceId = await RandomlyPickFromFetchedPlaces(currentLocation.coords.latitude, currentLocation.coords.longitude, props.filterDistance, props.filterCuisine, false);
             if (fetchedPlaceId) {
                 console.log("Fetched Place ID: ", fetchedPlaceId);
                 const placeDetails = await getPlaceDetailsById(fetchedPlaceId);

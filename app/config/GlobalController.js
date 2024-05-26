@@ -6,6 +6,7 @@ import * as Location from 'expo-location';
 import { initDB } from './sqlite';
 import Filter from '../components/filter';
 import DetailModal from '../components/detailModal';
+import EditListModal from '../components/editListModal';
 import AppNavigator from './AppNavigator';
 
 export default function GlobalController() {
@@ -45,9 +46,16 @@ export default function GlobalController() {
     const [filterOn, setFilterOn] = useState(false);
     const [filterDistance, setFilterDistance] = useState(0.5);
     const [filterWishlist, setFilterWishlist] = useState('None');
+    const [filterCuisine, setFilterCuisine] = useState(['All']);
     useEffect(() => {
-        console.log("Distance: ", filterDistance);
+        console.log("Distance: ", filterDistance, 'km');
     }, [filterDistance]);
+    useEffect(() => {
+        console.log("Wishlist: ", filterWishlist);
+    }, [filterWishlist]);
+    useEffect(() => {
+        console.log("Cuisine: ", filterCuisine);
+    }, [filterCuisine]);
 
     //Randomize Choice
     const [randomChoice, setRandomChoice] = useState(null);
@@ -58,6 +66,10 @@ export default function GlobalController() {
     }, [randomChoice])
 
     const [mapRenderFlag, setMapRenderFlag] = useState(false);
+
+    //Edit List
+    const [editList, setEditList] = useState(false);
+    const [selectedList, setSelectedList] = useState(null);
 
     //error handling
     if (error) {
@@ -72,6 +84,10 @@ export default function GlobalController() {
         // console.log("Location: ", location);
         return (
             <View style={{ flex: 1, backgroundColor: '#fff' }}>
+                {editList && (
+                    <EditListModal 
+                    />
+                )}
                 {randomChoice && (
                     <DetailModal
                         props={{
@@ -81,7 +97,8 @@ export default function GlobalController() {
                             globalCurrentLocation,
                             filterDistance,
                             mapRenderFlag,
-                            setMapRenderFlag
+                            setMapRenderFlag,
+                            filterCuisine
                         }}
                     />
                 )}
@@ -94,8 +111,10 @@ export default function GlobalController() {
                             setFilterDistance,
                             filterWishlist,
                             setFilterWishlist,
+                            filterCuisine,
+                            setFilterCuisine,
                             mapRenderFlag,
-                            setMapRenderFlag
+                            setMapRenderFlag,
                         }}
                     />
                 )}
@@ -111,10 +130,11 @@ export default function GlobalController() {
                             filterDistance,
                             setRandomChoice,
                             filterWishlist,
+                            filterCuisine
                         }}
                     />
-                    {currentScreen=='stores' && (<View style={{
-                        position:'absolute',
+                    {currentScreen == 'stores' && (<View style={{
+                        position: 'absolute',
                         bottom: 0,
                         height: 110,
                         width: '100%',
@@ -132,8 +152,15 @@ export default function GlobalController() {
                             setExitRandomChoice,
                             filterDistance,
                             filterWishlist,
+                            filterCuisine,
                             mapRenderFlag,
-                            setMapRenderFlag
+                            setMapRenderFlag,
+                            setFilterOn
+                        }}
+                        storeProps={{
+                            setEditList,
+                            setSelectedList,
+                            selectedList,
                         }}
                         randomChoice={randomChoice}
                         setRandomChoice={setRandomChoice}

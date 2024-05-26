@@ -12,7 +12,7 @@ import Picko from '../assets/images/picko.png';
 import * as Haptics from 'expo-haptics';
 import * as Location from 'expo-location';
 import haversine from 'haversine-distance';
-import { getSavedPlacesTable, getSavedPlacesWithinRadius } from '../api/fetchNearbyPlaces';
+import { getSavedPlacesTable, getSavedPlacesWithinRadius, filterByTypes } from '../api/fetchNearbyPlaces';
 
 export default function Map({ props, randomChoice, location, currentScreen }) {
 
@@ -57,7 +57,7 @@ export default function Map({ props, randomChoice, location, currentScreen }) {
     };
 
     mapRef = useRef(null);
-    const [mapZoom, setMapZoom] = useState(17);
+    const [mapZoom, setMapZoom] = useState(16);
     const [altitude, setAltitude] = useState(3000);
     const [initialLocation, setInitialLocation] = useState(location || null);
     const [currentLocation, setCurrentLocation] = useState(null);
@@ -147,17 +147,29 @@ export default function Map({ props, randomChoice, location, currentScreen }) {
         }
     }, [randomChoice]);
 
-    const [filterText, setFilterText] = useState("Anything Nearby");
+    const [filterText, setFilterText] = useState('');
     useEffect(() => {
-        if (props.filterWishlist) {
-            if (props.filterWishlist === 'None') {
-                setFilterText("Anything Nearby");
+        const { filterWishlist, filterCuisine, filterDistance } = props;
+    
+        if (filterWishlist && filterCuisine && filterDistance) {
+            console.log("props.filterCuisine", filterCuisine);
+    
+            let filterText = '';
+            const isWishlistNone = filterWishlist === 'None';
+            const includesAllCuisine = filterCuisine.includes("All");
+            const distanceText = filterDistance < 1 ? `${filterDistance * 1000}m` : `${filterDistance}km`;
+            const wishlistPrefix = isWishlistNone ? '' : ` from '${filterWishlist}'`;
+    
+            if (includesAllCuisine) {
+                filterText = `Anything${wishlistPrefix} in ${distanceText}`;
             } else {
-                setFilterText(props.filterWishlist);
+                const cuisineText = filterCuisine.length > 1 ? `${filterCuisine.length} types` : filterCuisine;
+                filterText = `${cuisineText}${wishlistPrefix} in ${distanceText}`;
             }
+    
+            setFilterText(filterText);
         }
-    }, [props.filterWishlist]);
-
+    }, [props, props.filterWishlist, props.filterCuisine, props.filterDistance]);
 
     return (
         <View style={styles.container}>
@@ -179,8 +191,8 @@ export default function Map({ props, randomChoice, location, currentScreen }) {
                 pitchEnabled={false}
                 rotateEnabled={false}
                 loadingEnabled={true}
-                showsUserLocation={!randomChoice}
-                followsUserLocation={(!randomChoice && autoResetCamera)}
+                showsUserLocation={!useGoogleMaps && !randomChoice}
+                followsUserLocation={(!useGoogleMaps && !randomChoice && autoResetCamera)}
                 showsPointsOfInterest={false}
                 showsCompass={false}
                 // tintColor='#7CE400'
@@ -191,10 +203,10 @@ export default function Map({ props, randomChoice, location, currentScreen }) {
             >
 
                 {(!randomChoice && showPlaces) &&
-                    showPlaces
+                    filterByTypes(showPlaces, props.filterCuisine)
                         .sort((a, b) => b.lon - a.lon)
                         .map((place, index) => {
-                            // console.log(place);
+                            console.log(place);
                             const size = 0.8;
 
                             return (
@@ -273,12 +285,11 @@ export default function Map({ props, randomChoice, location, currentScreen }) {
             <View style={styles.overcast}>
                 <TouchableOpacity
                     style={[styles.filterIndicator, (currentScreen != 'home') && { opacity: 0, pointerEvents: 'none' }]}
-                    activeOpacity={0.8}
-                    onPress={() => {
-                        hapticFeedback();
-                        handleToHome();
-                        props.setFilterOn(true);
-                    }}
+                    activeOpacity={1}
+                    // onPress={() => {
+                    //     hapticFeedback();
+                    //     props.setFilterOn(true);
+                    // }}
                 >
                     <Text style={{ fontSize: 14, fontWeight: 700 }}>Filter:</Text>
                     <Text style={{ fontSize: 12, fontWeight: 400 }}>{filterText}</Text>

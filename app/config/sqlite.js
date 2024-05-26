@@ -5,26 +5,26 @@ const db = SQLite.openDatabase('places.db');
 const deleteAllTables = () => {
     db.transaction(tx => {
 
-        // tx.executeSql(
-        //     `DROP TABLE IF EXISTS Places;`,
-        //     [],
-        //     () => console.log('Places table deleted successfully'),
-        //     (_, error) => console.error('Failed to delete Places table', error)
-        // );
+        tx.executeSql(
+            `DROP TABLE IF EXISTS Places;`,
+            [],
+            () => console.log('Places table deleted successfully'),
+            (_, error) => console.error('Failed to delete Places table', error)
+        );
 
-        // tx.executeSql(
-        //     `DROP TABLE IF EXISTS FetchedLocations;`,
-        //     [],
-        //     () => console.log('FetchedLocations table deleted successfully'),
-        //     (_, error) => console.error('Failed to delete FetchedLocations table', error)
-        // );
+        tx.executeSql(
+            `DROP TABLE IF EXISTS FetchedLocations;`,
+            [],
+            () => console.log('FetchedLocations table deleted successfully'),
+            (_, error) => console.error('Failed to delete FetchedLocations table', error)
+        );
 
-        // tx.executeSql(
-        //     `DROP TABLE IF EXISTS SavedPlaces;`,
-        //     [],
-        //     () => console.log('SavedPlaces table deleted successfully'),
-        //     (_, error) => console.error('Failed to delete SavedPlaces table', error)
-        // );
+        tx.executeSql(
+            `DROP TABLE IF EXISTS SavedPlaces;`,
+            [],
+            () => console.log('SavedPlaces table deleted successfully'),
+            (_, error) => console.error('Failed to delete SavedPlaces table', error)
+        );
 
         tx.executeSql(
             `DROP TABLE IF EXISTS Wishlists;`,
@@ -57,6 +57,21 @@ export const createWishlist = (listName) => {
         );
     });
 };
+export const deleteWishlist = (listId) => {
+    if (!listId || listId === '') {
+        console.error("List ID is required");
+        return;
+    }
+
+    db.transaction(tx => {
+        tx.executeSql(
+            `DELETE FROM Wishlists WHERE id = ?;`,
+            [listId],
+            () => console.log('Wishlist deleted successfully'),
+            (_, error) => console.error('Failed to delete wishlist from Wishlists table', error)
+        );
+    });
+}
 
 export const initDB = () => {
     // deleteAllTables();

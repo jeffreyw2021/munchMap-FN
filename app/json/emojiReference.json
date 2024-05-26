@@ -1,4 +1,17 @@
 {
+    "amenity": {
+        "restaurant": "🍽️",
+        "cafe": "☕",
+        "fast_food": "🍔",
+        "bar": "🍸",
+        "pub": "🍺",
+        "ice_cream": "🍦",
+        "bbq": "🍖"
+    },
+    "shop":{
+        "bakery": "🍞",
+        "...": "..."
+    },
     "cuisine": {
         "afghan": "🥘",
         "african": "🌍",
@@ -192,17 +205,5 @@
         "brewery": "🍺",
         "winery": "🍷",
         "distillery": "🥃"
-    },
-    "amenity": {
-        "ice_cream": "🍦",
-        "restaurant": "🍽️",
-        "cafe": "☕",
-        "pub": "🍺",
-        "bar": "🍸",
-        "bbq": "🍖",
-        "fast_food": "🍔"
-    },
-    "shop":{
-        "bakery": "🍞"
     }
 }

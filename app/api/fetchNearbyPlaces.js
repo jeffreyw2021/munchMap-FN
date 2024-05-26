@@ -7,11 +7,11 @@ const db = SQLite.openDatabase('places.db');
 
 const processPlaceData = (place) => {
     const { lat, lon, tags } = place;
-    let placeName = tags && tags.name; 
+    let placeName = tags && tags.name;
 
     if (!placeName) {
         // console.log("No name found for this place, skipping:", place);
-        return null; 
+        return null;
     }
 
     const attributes = { ...tags };
@@ -153,7 +153,7 @@ const getPlacesWithinRadius = async (lat, lon, radius) => {
             tx.executeSql(
                 `SELECT * FROM Places;`, [],
                 (_, { rows }) => {
-                    const validPlaces = rows._array.filter(place => isWithinRadius({lat, lon}, place, radius*1000));
+                    const validPlaces = rows._array.filter(place => isWithinRadius({ lat, lon }, place, radius * 1000));
                     resolve(validPlaces);
                 },
                 (_, error) => {
@@ -166,29 +166,56 @@ const getPlacesWithinRadius = async (lat, lon, radius) => {
 };
 export const getSavedPlacesWithinRadius = (places, lat, lon, radius) => {
     console.log(radius);
-    const validPlaces = places.filter(place => isWithinRadius({lat, lon}, place, radius*1000));
+    const validPlaces = places.filter(place => isWithinRadius({ lat, lon }, place, radius * 1000));
     return (validPlaces);
 }
 
-export const RandomlyPickFromFetchedPlaces = async (lat, lon, searchRadius = 0.5, clearTable = false) => {
+
+export const filterByTypes = (places, filterCuisine) => {
+    if (filterCuisine.includes("All")) {
+        return places;
+    }
+
+    return places.filter(place => {
+        const attributes = place.attributes ? JSON.parse(place.attributes) : null;
+        if (attributes) {
+            const hasRelevantAttribute = ['amenity', 'shop', 'cuisine', 'craft'].some(attr => {
+                return attributes[attr] && filterCuisine.includes(attributes[attr]);
+            });
+
+            if (hasRelevantAttribute) {
+                console.log("places.attributes", attributes);
+                return true;
+            }
+        }
+        return false;
+    });
+}
+export const RandomlyPickFromFetchedPlaces = async (lat, lon, searchRadius = 0.5, filterCuisine, clearTable = false) => {
     if (clearTable) {
         clearPlacesTable();
     }
-    console.log("Fetching and randomly picking a nearby place...");
+    console.log("Fetching and randomly picking a nearby place based on filter:", filterCuisine);
 
-    const query = `
-    [out:json];
-    (
-        node["amenity"="restaurant"](around:${searchRadius * 1000},${lat},${lon});
-        node["amenity"="cafe"](around:${searchRadius * 1000},${lat},${lon});
-        node["amenity"="pub"](around:${searchRadius * 1000},${lat},${lon});
-        node["amenity"="bar"](around:${searchRadius * 1000},${lat},${lon});
-        node["amenity"="bbq"](around:${searchRadius * 1000},${lat},${lon});
-        node["amenity"="fast_food"](around:${searchRadius * 1000},${lat},${lon});
-        node["amenity"="ice_cream"](around:${searchRadius * 1000},${lat},${lon});
-        node["shop"="bakery"](around:${searchRadius * 1000},${lat},${lon});
-    );
-    out;`;
+    let query = '[out:json];(';
+
+    if (filterCuisine.includes("All")) {
+        query += `
+            node["amenity"](around:${searchRadius * 1000},${lat},${lon});
+            node["shop"="bakery"](around:${searchRadius * 1000},${lat},${lon});
+        `;
+    } else {
+        const amenityTypes = ['restaurant', 'cafe', 'pub', 'bar', 'bbq', 'fast_food', 'ice_cream'];
+        const shopTypes = ['bakery']; // Include only relevant shop types
+
+        for (const amenity of amenityTypes) {
+            if (filterCuisine.includes(amenity)) {
+                query += `node["amenity"="${amenity}"](around:${searchRadius * 1000},${lat},${lon});`;
+            }
+        }
+    }
+
+    query += '); out;';
 
     try {
         const response = await axios.post(overpassUrl, query);
@@ -196,40 +223,39 @@ export const RandomlyPickFromFetchedPlaces = async (lat, lon, searchRadius = 0.5
 
         insertFetchedLocation(lat, lon, searchRadius);
 
-        const placeIds = [];
-
-        for (const place of fetchedPlaces) {
+        // Correctly await the place ID insertions and filter out nulls
+        const placeIds = await Promise.all(fetchedPlaces.map(async place => {
             const processedPlace = processPlaceData(place);
-            if (processedPlace) {
-                const placeId = await insertPlace(processedPlace);
-                if (placeId !== null) {
-                    placeIds.push(placeId);
-                }
-            }
-        }
+            return processedPlace ? await insertPlace(processedPlace) : null;
+        }));
+        const validPlaceIds = placeIds.filter(id => id !== null);
 
-        if (placeIds.length > 0) {
-            const randomIndex = Math.floor(Math.random() * placeIds.length);
-            return placeIds[randomIndex]; // Return the ID of a randomly picked place
+        if (validPlaceIds.length > 0) {
+            const randomIndex = Math.floor(Math.random() * validPlaceIds.length);
+            return validPlaceIds[randomIndex];
         } else {
-            console.log('No places found, attempting to fetch from local database...');
-            return fetchRandomPlaceFromLocal(lat, lon, searchRadius);
+            console.log('No matching places found, attempting to fetch from local database...');
+            return fetchRandomPlaceFromLocal(lat, lon, searchRadius, filterCuisine);
         }
     } catch (error) {
         console.error("Network or processing error occurred: ", error);
         console.log('Attempting to fetch random place from local database due to network error...');
-        return fetchRandomPlaceFromLocal(lat, lon, searchRadius);
+        return fetchRandomPlaceFromLocal(lat, lon, searchRadius, filterCuisine);
     }
 };
 
-const fetchRandomPlaceFromLocal = async (lat, lon, radius) => {
+
+
+const fetchRandomPlaceFromLocal = async (lat, lon, radius, filterCuisine) => {
     try {
         const localPlaces = await getPlacesWithinRadius(lat, lon, radius);
-        if (localPlaces.length > 0) {
-            const randomIndex = Math.floor(Math.random() * localPlaces.length);
-            return localPlaces[randomIndex].id; 
+        const filteredPlaces = filterByTypes(localPlaces, filterCuisine);
+        
+        if (filteredPlaces.length > 0) {
+            const randomIndex = Math.floor(Math.random() * filteredPlaces.length);
+            return filteredPlaces[randomIndex].id;
         } else {
-            console.log('No local places found within the radius.');
+            console.log('No local matching places found within the radius.');
             return null;
         }
     } catch (error) {

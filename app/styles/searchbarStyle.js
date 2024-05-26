@@ -7,7 +7,7 @@ export default StyleSheet.create({
         width: '100%',
         justifyContent: 'flex-start',
         paddingBottom: 30,
-        paddingHorizontal: 30,
+        paddingHorizontal: 20,
         zIndex: 12,
         pointerEvents: 'box-none'
     },

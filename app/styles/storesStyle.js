@@ -9,7 +9,7 @@ export default StyleSheet.create({
         width: '100%',
         justifyContent: 'space-between',
         alignItems: 'center',
-        backgroundColor:'#fff'
+        backgroundColor: '#fff'
     },
     background: {
         position: 'absolute',
@@ -111,26 +111,26 @@ export default StyleSheet.create({
         backgroundColor: '#DDD',
         pointerEvents: 'box-none'
     },
-    placeCardHead:{
-        position:'absolute',
+    placeCardHead: {
+        position: 'absolute',
         left: 0,
         top: 0,
         height: '100%',
         width: '30%',
-        backgroundColor:'#fff',
-        zIndex: -2     
+        backgroundColor: '#fff',
+        zIndex: -2
     },
-    placeCardTail:{
-        position:'absolute',
-        right: 0, 
+    placeCardTail: {
+        position: 'absolute',
+        right: 0,
         bottom: 0,
         height: '100%',
-        justifyContent:'center',
-        alignItems:'center',
-        backgroundColor:'#DDD',
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#DDD',
     },
-    placeCardBg:{
-        position:'absolute',
+    placeCardBg: {
+        position: 'absolute',
         left: 0,
         right: 0,
         width: screenWidth,
@@ -138,19 +138,19 @@ export default StyleSheet.create({
         zIndex: 1
     },
     placeCard: {
-        flexDirection:'row',
-        justifyContent:'flex-start',
-        alignItems:'center',
+        flexDirection: 'row',
+        justifyContent: 'flex-start',
+        alignItems: 'center',
         pointerEvents: 'box-none'
     },
-    placeCardInner:{
+    placeCardInner: {
         backgroundColor: '#fff',
         width: screenWidth,
         flexDirection: 'row',
         justifyContent: 'flex-start',
         alignItems: 'center',
         paddingVertical: 20,
-        paddingHorizontal: 30,
+        paddingHorizontal: 20,
         columnGap: 15
     },
     placeCardEmoji: {
@@ -162,27 +162,28 @@ export default StyleSheet.create({
         alignItems: 'center'
     },
 
-    wishlistTop:{
-        paddingHorizontal: 30,
+    wishlistTop: {
+        paddingHorizontal: 20,
         paddingVertical: 20,
         width: '100%',
-        flexDirection:'row',
-        justifyContent:'space-between'
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        backgroundColor: '#fff'
     },
-    addWishlistBtnContent:{
+    addWishlistBtnContent: {
         height: 40,
         paddingHorizontal: 12,
         gap: 8,
-        flexDirection:'row',
-        justifyContent:'flex-start',
-        alignItems:'center',
+        flexDirection: 'row',
+        justifyContent: 'flex-start',
+        alignItems: 'center',
         borderRadius: 6,
         borderWidth: 1,
         borderColor: '#000',
         backgroundColor: '#fff'
     },
-    addWishlistBtnShadow:{
-        position:'absolute',
+    addWishlistBtnShadow: {
+        position: 'absolute',
         top: 3,
         height: '100%',
         width: '100%',
@@ -190,23 +191,53 @@ export default StyleSheet.create({
         borderRadius: 6,
         zIndex: -1
     },
-    editBtnContent:{
+    editWishlistBtnContent: {
+        height: 30,
+        paddingHorizontal: 12,
+        gap: 8,
+        flexDirection: 'row',
+        justifyContent: 'flex-start',
+        alignItems: 'center',
+        borderRadius: 6,
+        borderWidth: 1,
+        borderColor: '#000',
+        backgroundColor: '#fff'
+    },
+    editWishlistBtnShadow: {
+        position: 'absolute',
+        top: 3,
+        height: '100%',
+        width: '100%',
+        backgroundColor: '#000',
+        borderRadius: 6,
+        zIndex: -1
+    },
+    editBtnContent: {
         height: 40,
         width: 40,
-        justifyContent:'center',
-        alignItems:'center',
+        justifyContent: 'center',
+        alignItems: 'center',
         borderRadius: 6,
         borderWidth: 1,
         borderColor: '#000',
         backgroundColor: '#fff'
     },
-    editBtnShadow:{
-        position:'absolute',
+    editBtnShadow: {
+        position: 'absolute',
         top: 3,
         height: '100%',
         width: '100%',
         backgroundColor: '#000',
         borderRadius: 6,
         zIndex: -1
+    },
+
+    overcast: {
+        position: 'absolute',
+        flex: 1,
+        height: '100%',
+        width: '100%',
+        backgroundColor: 'rgba(0,0,0,0.3)',
+        zIndex: 100,
     }
 });

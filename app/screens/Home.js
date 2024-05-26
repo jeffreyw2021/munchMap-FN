@@ -14,16 +14,19 @@ export default function Home({ route, navigation }) {
             const setExitRandomChoice = route.params?.homeProps?.setExitRandomChoice;
             const setMapRenderFlag = route.params?.homeProps?.setMapRenderFlag;
             const setRandomChoice = route.params?.setRandomChoice;
-        
+            const setFilterOn = route.params?.setFilterOn;
+
             setProps({
                 setGlobalCurrentLocation,
                 exitRandomChoice: route.params.homeProps.exitRandomChoice,
                 setExitRandomChoice,
                 filterDistance: route.params.homeProps.filterDistance,
                 filterWishlist: route.params.homeProps.filterWishlist,
+                filterCuisine: route.params.homeProps.filterCuisine,
                 mapRenderFlag: route.params.homeProps.mapRenderFlag,
                 setMapRenderFlag,
-                setRandomChoice
+                setRandomChoice,
+                setFilterOn
             });
         }
     }, [route.params.homeProps]);

@@ -57,6 +57,7 @@ export default function Navbar({ props }) {
             console.log("vibrate on");
         }
     }, [isPressingRoll]);
+
     useEffect(() => {
         let hapticInterval;
 
@@ -119,7 +120,8 @@ export default function Navbar({ props }) {
     const rollForPlaces = async () => {
         console.log("Current Location Latitude: ", currentLocation.coords.latitude, ", Longitude: ", currentLocation.coords.longitude);
         try {
-            const fetchedPlaceId = await RandomlyPickFromFetchedPlaces(currentLocation.coords.latitude, currentLocation.coords.longitude, props.filterDistance, false);
+            const fetchedPlaceId = await RandomlyPickFromFetchedPlaces(currentLocation.coords.latitude, currentLocation.coords.longitude, props.filterDistance, props.filterCuisine, false);
+            console.log("Fetched Place ID: ", fetchedPlaceId);
             if (fetchedPlaceId) {
                 console.log("Fetched Place ID: ", fetchedPlaceId);
                 const placeDetails = await getPlaceDetailsById(fetchedPlaceId);

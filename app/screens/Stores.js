@@ -1,21 +1,22 @@
 import React, { useState, useEffect, useRef, forwardRef } from 'react';
-import { View, Text, Image, ImageBackground, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { View, Text, Image, ImageBackground, TouchableOpacity, ScrollView, Alert, Touchable } from 'react-native';
 import styles from '../styles/storesStyle';
 import { getSavedPlacesTable, getWishlistsTable, getTable } from '../api/fetchNearbyPlaces';
 import Picko from '../assets/images/picko.png';
 import dot from '../assets/images/dot.png';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faGear, faPlus, faPen } from '@fortawesome/free-solid-svg-icons';
+import { faGear, faPlus, faPen, faCheck, faAngleLeft, faEllipsis } from '@fortawesome/free-solid-svg-icons';
 import { faCircleQuestion } from '@fortawesome/free-regular-svg-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import LeftSwipeCard from '../components/leftSwipeCard';
-import Wishlist from '../components/wishlist';
+import WishlistCard from '../components/wishlist';
 import { createWishlist } from '../config/sqlite';
 
 export default function Stores({ route, navigation }) {
 
     const setRandomChoice = route.params?.setRandomChoice;
+    const props = route.params?.storeProps;
 
     const [savedPlaces, setSavedPlaces] = useState(null);
     const [checkSavedPlacesFlag, setCheckSavedPlacesFlag] = useState(false);
@@ -43,15 +44,14 @@ export default function Stores({ route, navigation }) {
                     wishlistPlacesId: wishlist.wishlistPlacesId ? wishlist.wishlistPlacesId.split(';').map(Number) : []
                 }));
                 setWishlists(processedWishlists);
-                // console.log(wishlists);
             })
             .catch(error => {
                 console.error('Failed to fetch wishlists: ', error);
             });
     }
     useEffect(() => {
-        console.log(wishlists);
-    }, [wishlists])
+        console.log("wishlists: ", wishlists);
+    }, [wishlists]);
 
     const cardRefs = useRef([]);
     useEffect(() => {
@@ -89,9 +89,12 @@ export default function Stores({ route, navigation }) {
         );
     };
 
+    const [isPressingListEdit, setIsPressingListEdit] = useState(false);
+
     return (
         <View style={styles.container}>
             <View style={{ flex: 1, width: '100%' }}>
+
                 <View style={styles.topContainer}>
                     <ImageBackground
                         source={dot}
@@ -127,6 +130,7 @@ export default function Stores({ route, navigation }) {
                         <View style={styles.userInfoShadow} />
                     </View>
                 </View>
+
                 <View style={{ flex: 1, justifyContent: 'flex-start', width: '100%' }}>
                     <View style={styles.listSwitch}>
                         <TouchableOpacity
@@ -195,51 +199,76 @@ export default function Stores({ route, navigation }) {
                         </View>
                     ) : (
                         <View style={{ flex: 1, width: '100%' }}>
-                            <ScrollView
-                                showsVerticalScrollIndicator={false}
-                                style={{ width: '100%' }}
-                            >
-                                <View style={styles.wishlistTop}>
-                                    <TouchableOpacity
-                                        activeOpacity={1}
-                                        onPressIn={() => { setCreateNewListBtnPressing(true); }}
-                                        onPressOut={() => { setCreateNewListBtnPressing(false); }}
-                                        onPress={() => {
-                                            showCreateListAlert();
-                                        }}
-                                    >
-                                        <View style={[styles.addWishlistBtnContent, createNewListBtnPressing && { top: 3 }]}>
-                                            <FontAwesomeIcon icon={faPlus} size={16} />
-                                            <Text style={{ fontSize: 15, fontWeight: 600 }}>Create New List</Text>
-                                        </View>
-                                        <View style={styles.addWishlistBtnShadow} />
-                                    </TouchableOpacity>
-                                    <TouchableOpacity
-                                        activeOpacity={1}
-                                        onPressIn={() => { setEditBtnPressing(true); }}
-                                        onPressOut={() => { setEditBtnPressing(false); }}
-                                        onPress={() => {
+                            {!props.selectedList ? (
+                                <ScrollView
+                                    showsVerticalScrollIndicator={false}
+                                    style={{ width: '100%' }}
+                                >
+                                    <View style={styles.wishlistTop}>
+                                        <TouchableOpacity
+                                            activeOpacity={1}
+                                            onPressIn={() => { setCreateNewListBtnPressing(true); }}
+                                            onPressOut={() => { setCreateNewListBtnPressing(false); }}
+                                            onPress={() => {
+                                                showCreateListAlert();
+                                            }}
+                                        >
+                                            <View style={[styles.addWishlistBtnContent, createNewListBtnPressing && { top: 3 }]}>
+                                                <FontAwesomeIcon icon={faPlus} size={16} />
+                                                <Text style={{ fontSize: 15, fontWeight: 600 }}>Create New List</Text>
+                                            </View>
+                                            <View style={styles.addWishlistBtnShadow} />
+                                        </TouchableOpacity>
+                                    </View>
 
-                                        }}
+                                    <View style={{ width: '100%', paddingHorizontal: 20, marginTop: 7, gap: 12 }}>
+                                        {(wishlists && wishlists.map(
+                                            (place, index) => {
+                                                return (
+                                                    <WishlistCard key={index} place={place} setSelectedList={props.setSelectedList} />
+                                                )
+                                            }
+                                        )
+                                        )}
+                                    </View>
+                                </ScrollView>
+                            ) : (
+                                <View style={{ flex: 1, width: '100%' }}>
+                                    <View style={styles.wishlistTop}>
+                                        <TouchableOpacity
+                                            activeOpacity={1}
+                                            onPress={() => {
+                                                setSelectedList(null);
+                                                hapticFeedback();
+                                            }}
+                                        >
+                                            <FontAwesomeIcon icon={faAngleLeft} size={20} />
+                                        </TouchableOpacity>
+                                    </View>
+                                    <ScrollView
+                                        showsVerticalScrollIndicator={false}
+                                        style={{ width: '100%' }}
                                     >
-                                        <View style={[styles.editBtnContent, editBtnPressing && { top: 3 }]}>
-                                            <FontAwesomeIcon icon={faPen} size={16} />
+                                        <View style={{ width: '100%', paddingHorizontal: 25, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                                            <Text style={{ fontWeight: 700, fontSize: 22, textTransform: 'capitalize' }}>{props.selectedList.listName}</Text>
+                                            <TouchableOpacity
+                                                activeOpacity={1}
+                                                onPressIn={() => setIsPressingListEdit(true)}
+                                                onPressOut={() => setIsPressingListEdit(false)}
+                                                onPress={() => {
+                                                    hapticFeedback();
+                                                    props.setEditList(true);
+                                                }}
+                                            >
+                                                <View style={[styles.editWishlistBtnContent, isPressingListEdit && { top: 3 }]}>
+                                                    <FontAwesomeIcon icon={faEllipsis} size={16} />
+                                                </View>
+                                                <View style={styles.editWishlistBtnShadow} />
+                                            </TouchableOpacity>
                                         </View>
-                                        <View style={styles.editBtnShadow} />
-                                    </TouchableOpacity>
+                                    </ScrollView>
                                 </View>
-
-                                <View style={{ width: '100%', paddingHorizontal: 30, marginTop: 7, gap: 12}}>
-                                    {(wishlists && wishlists.map(
-                                        (place, index) => {
-                                            return (
-                                                <Wishlist key={index} listName={place.listName} placeCount={place.wishlistPlacesId.length} />
-                                            )
-                                        }
-                                    )
-                                    )}
-                                </View>
-                            </ScrollView>
+                            )}
                         </View>
                     )}
                 </View>

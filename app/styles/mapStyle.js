@@ -25,12 +25,12 @@ export default StyleSheet.create({
         alignItems: 'center',
         alignSelf: 'flex-start',
         position: 'absolute',
-        left: 60,
+        left: 40,
         pointerEvents: 'box-none'
     },
     overcast:{
         position:'absolute', 
-        right: 30, 
+        right: 20, 
         bottom: 97,
         width: screenWidth,
         alignItems: 'flex-end',

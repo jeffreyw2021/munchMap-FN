@@ -23,16 +23,16 @@ const LeftSwipeCard = forwardRef(({ props }, ref) => {
     const hapticFeedback = () => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
-    const processDetail = (detail) => {
+    const processDetail = (detail, processData = true) => {
         let attributesToCheck = ['amenity', 'cuisine', 'craft', 'shop'];
         let output = [];
-
+    
         if (detail && detail.attributes) {
             const attributes = typeof detail.attributes === 'string' ? JSON.parse(detail.attributes) : detail.attributes;
-            if (attributes['cuisine'] && attributes['cuisine'] != '') {
+            if (processData && attributes['cuisine'] && attributes['cuisine'] !== '') {
                 attributesToCheck = ['cuisine', 'craft', 'shop'];
             }
-
+    
             attributesToCheck.forEach(attr => {
                 if (attributes[attr]) {
                     if (attr === 'cuisine') {
@@ -43,10 +43,10 @@ const LeftSwipeCard = forwardRef(({ props }, ref) => {
                 }
             });
         }
-
+    
         return output.slice(0, 3);
-    };
-    const tagsString = processDetail(props.place).slice(0, 3).join(', ');
+    };  
+    const tagsString = processDetail(props.place, false).slice(0, 3).join(', ');
 
     const removePlaceFromSavedPlaces = async (placeId) => {
         db.transaction(tx => {

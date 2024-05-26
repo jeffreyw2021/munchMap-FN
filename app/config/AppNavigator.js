@@ -6,7 +6,7 @@ import Stores from '../screens/Stores';
 
 const Stack = createNativeStackNavigator();
 
-export default function AppNavigator ({ currentScreen, location, randomChoice, homeProps, setRandomChoice }) {
+export default function AppNavigator ({ currentScreen, location, randomChoice, homeProps, storeProps, setRandomChoice }) {
     const navigationRef = useRef(null);
 
     useEffect(() => {
@@ -20,7 +20,12 @@ export default function AppNavigator ({ currentScreen, location, randomChoice, h
         if (navigationRef.current && homeProps !== undefined) {
             navigationRef.current.setParams({ homeProps });
         }
-    }, [homeProps]);    
+    }, [homeProps]);  
+    useEffect(() => {
+        if (navigationRef.current && storeProps !== undefined) {
+            navigationRef.current.setParams({ storeProps });
+        }
+    }, [storeProps]);    
     useEffect(() => {
         if (navigationRef.current && randomChoice !== undefined) {
             navigationRef.current.setParams({ randomChoice });
@@ -50,6 +55,7 @@ export default function AppNavigator ({ currentScreen, location, randomChoice, h
                     name="Stores"
                     component={Stores}
                     initialParams={{
+                        storeProps,
                         setRandomChoice
                     }}
                 />

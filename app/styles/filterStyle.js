@@ -56,8 +56,38 @@ export default StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'flex-start',
         alignItems: 'center',
-        paddingVertical: 10,
-        paddingHorizontal: 30,
+        paddingVertical: 12,
+        paddingHorizontal: 20,
+        gap: 10,
+    },
+    filterExpand:{
+        paddingBottom: 15,
+        paddingHorizontal: 20,
+        gap: 15,
+        justifyContent:'flex-start'
+    },
+    filterExpandTop:{
+        flexDirection:'row',
+        justifyContent: 'space-between',
+        alignItems:'center',
+        paddingHorizontal: 20,
+        paddingBottom: 16
+    },
+    filterSearch:{
+        width: '100%',
+        fontSize: 16,
+        borderRadius: 6,
+        borderWidth: 1,
+        borderColor: '#000',
+        backgroundColor: '#fff',
+        paddingHorizontal: 10,
+        paddingVertical: 8
+    },
+    filterExpandBody:{
+        flexDirection:'row',
+        justifyContent:'flex-start',
+        alignItems:'flex-start',
+        flexWrap:'wrap',
         gap: 10,
     },
     filterRowBorder:{
