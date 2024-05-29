@@ -7,24 +7,24 @@ import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faXmark, faDice, faLocationArrow } from '@fortawesome/free-solid-svg-icons';
 import { faCircleQuestion, faBookmark } from '@fortawesome/free-regular-svg-icons';
 import { faBookmark as solidBookMark } from '@fortawesome/free-solid-svg-icons';
-import { getFetchedLocationsTable, getPlacesTable, RandomlyPickFromFetchedPlaces, fetchNearbyPlaces } from '../api/fetchNearbyPlaces';
+import { getFetchedLocationsTable, getSavedPlacesTable, RandomlyPickFromFetchedPlaces, fetchNearbyPlaces } from '../api/fetchNearbyPlaces';
 import * as SQLite from 'expo-sqlite';
 
 const db = SQLite.openDatabase('places.db');
 
-export default function DetailModal({props}) {
+export default function DetailModal({ props }) {
 
     const [detail, setDetail] = useState(null);
     const processDetail = (detail, processData = true) => {
         let attributesToCheck = ['amenity', 'cuisine', 'craft', 'shop'];
         let output = [];
-    
+
         if (detail && detail.attributes) {
             const attributes = typeof detail.attributes === 'string' ? JSON.parse(detail.attributes) : detail.attributes;
             if (processData && attributes['cuisine'] && attributes['cuisine'] !== '') {
                 attributesToCheck = ['cuisine', 'craft', 'shop'];
             }
-    
+
             attributesToCheck.forEach(attr => {
                 if (attributes[attr]) {
                     if (attr === 'cuisine') {
@@ -35,9 +35,9 @@ export default function DetailModal({props}) {
                 }
             });
         }
-    
+
         return output.slice(0, 3);
-    };    
+    };
     const [tags, setTags] = useState(null);
     const [isSaved, setIsSaved] = useState(false);
     useEffect(() => {
@@ -153,10 +153,11 @@ export default function DetailModal({props}) {
     };
     const rollForPlaces = async () => {
         console.log("Current Location Latitude: ", currentLocation.coords.latitude, ", Longitude: ", currentLocation.coords.longitude);
+        props.setLoaderOn(true); // Turn on the loader before starting the fetch operation
         try {
             const fetchedPlaceId = await RandomlyPickFromFetchedPlaces(currentLocation.coords.latitude, currentLocation.coords.longitude, props.filterDistance, props.filterCuisine, false);
+            console.log("Fetched Place ID: ", fetchedPlaceId);
             if (fetchedPlaceId) {
-                console.log("Fetched Place ID: ", fetchedPlaceId);
                 const placeDetails = await getPlaceDetailsById(fetchedPlaceId);
                 props.setRandomChoice(placeDetails);
             } else {
@@ -164,8 +165,10 @@ export default function DetailModal({props}) {
             }
         } catch (error) {
             console.error("Error during fetching and retrieving place details: ", error);
+        } finally {
+            props.setLoaderOn(false); // Turn off the loader regardless of success or failure
         }
-    };
+    };    
 
     const savePlaceToSavedPlaces = async (placeId) => {
         db.transaction(tx => {
@@ -175,13 +178,11 @@ export default function DetailModal({props}) {
                 (_, result) => {
                     if (result.rows.length > 0) {
                         const place = result.rows.item(0);
-                        // Check if place already exists in savedPlaces
                         tx.executeSql(
                             `SELECT id FROM savedPlaces WHERE id = ?;`,
                             [placeId],
                             (_, checkResult) => {
                                 if (checkResult.rows.length === 0) {
-                                    // Place not in savedPlaces, so insert it
                                     tx.executeSql(
                                         `INSERT INTO savedPlaces (id, name, lat, lon, attributes, emoji) VALUES (?, ?, ?, ?, ?, ?);`,
                                         [place.id, place.name, place.lat, place.lon, place.attributes, place.emoji],
@@ -190,6 +191,13 @@ export default function DetailModal({props}) {
                                     );
                                     setIsSaved(true);
                                     props.setMapRenderFlag(!props.mapRenderFlag);
+                                    getSavedPlacesTable()
+                                        .then(places => {
+                                            props.setGlobalSavedPlaces(places);
+                                        })
+                                        .catch(error => {
+                                            console.error('Failed to fetch saved places: ', error);
+                                        });
                                 } else {
                                     console.log('Place already saved in savedPlaces');
                                     setIsSaved(true);
@@ -205,6 +213,7 @@ export default function DetailModal({props}) {
             );
         });
     };
+
     const removePlaceFromSavedPlaces = async (placeId) => {
         db.transaction(tx => {
             tx.executeSql(
@@ -215,6 +224,13 @@ export default function DetailModal({props}) {
                         console.log(`Place with ID ${placeId} removed from savedPlaces successfully.`);
                         props.setMapRenderFlag(!props.mapRenderFlag);
                         setIsSaved(false);
+                        getSavedPlacesTable()
+                        .then(places => {
+                            props.setGlobalSavedPlaces(places);
+                        })
+                        .catch(error => {
+                            console.error('Failed to fetch saved places: ', error);
+                        });
                     } else {
                         console.log(`No place found with ID ${placeId} in savedPlaces or failed to delete.`);
                     }
@@ -224,7 +240,7 @@ export default function DetailModal({props}) {
                 }
             );
         });
-    };    
+    };
 
     const isPlaceSaved = async (placeId) => {
         return new Promise((resolve, reject) => {
@@ -253,9 +269,15 @@ export default function DetailModal({props}) {
             <Animated.View style={[styles.detailBlock, {
                 transform: [{ translateY: position }]
             }]}>
-                <View style={styles.topContent}>
-                    <View style={{ justifyContent: 'flex-start', alignItems: 'flex-start', gap: 8 }}>
-                        <Text style={{ fontWeight: '600', fontSize: 20 }} ellipsizeMode='tail'>{detail?.name}</Text>
+                <View style={[styles.topContent, { width: '100%' }]}>
+                    <View style={{ flex: 1, gap: 30, justifyContent: 'flex-start', alignItems: 'flex-start', gap: 8 }}>
+                        <Text
+                            style={{ fontWeight: '600', fontSize: 20, overflow: 'hidden'}}
+                            ellipsizeMode='tail'
+                            numberOfLines={1}
+                        >
+                            {detail?.name}
+                        </Text>
                         <View style={styles.tagContainer}>
                             {tags && tags.map((tag, index) => (
                                 <View key={index} style={styles.tag}>
@@ -271,9 +293,9 @@ export default function DetailModal({props}) {
                         onPress={() => {
                             hapticFeedback();
                             if (detail && detail.id) {
-                                if(isSaved){
+                                if (isSaved) {
                                     removePlaceFromSavedPlaces(detail.id);
-                                }else{
+                                } else {
                                     savePlaceToSavedPlaces(detail.id);
                                 }
                             }
@@ -353,10 +375,10 @@ export default function DetailModal({props}) {
                     <TouchableOpacity
                         style={{ flex: 1 }}
                         activeOpacity={1}
-                        onPressIn={() => setReRollPressing(true)}
+                        onPressIn={() => !props.loaderOn && setReRollPressing(true)}
                         onPressOut={() => {
-                            setReRollPressing(false);
-                            rollForPlaces();
+                            !props.loaderOn && setReRollPressing(false);
+                            !props.loaderOn && rollForPlaces();
                         }}
                     >
                         <View style={[styles.reRollBtnContent, reRollPressing && { top: 3 }]}>

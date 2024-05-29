@@ -72,6 +72,132 @@ export const deleteWishlist = (listId) => {
         );
     });
 }
+export const renameWishtlist = (listId, listName) => {
+    if (!listId || listId === '') {
+        return;
+    }
+
+    if (!listName || listName === '') {
+        return;
+    }
+
+    db.transaction(tx => {
+        tx.executeSql(
+            `UPDATE Wishlists SET listName = ? WHERE id = ?;`,
+            [listName, listId],
+            () => console.log('Wishlist renamed successfully'),
+            (_, error) => console.error('Failed to rename wishlist in Wishlists table', error)
+        );
+    });
+}
+
+export const addPlaceToWishlist = (listId, placeId) => {
+    return new Promise((resolve, reject) => {
+        if (!listId) {
+            reject("List ID is required");
+            return;
+        }
+
+        db.transaction(tx => {
+            tx.executeSql(
+                `SELECT wishlistPlacesId FROM Wishlists WHERE id = ?;`,
+                [listId],
+                (_, result) => {
+                    if (result.rows.length === 0) {
+                        reject("No wishlist found with that ID");
+                        return;
+                    }
+
+                    const row = result.rows._array[0];
+                    const existingIds = row.wishlistPlacesId ? row.wishlistPlacesId.split(',') : [];
+
+                    if (existingIds.includes(placeId.toString())) {
+                        console.log("Place is already in the wishlist.");
+                        resolve(); // Resolve even if not adding because it's not an error
+                        return;
+                    }
+
+                    let updatedWishlistPlacesId = existingIds.length > 0 ? `${existingIds.join(',')},${placeId}` : `${placeId}`;
+
+                    tx.executeSql(
+                        `UPDATE Wishlists SET wishlistPlacesId = ? WHERE id = ?;`,
+                        [updatedWishlistPlacesId, listId],
+                        () => {
+                            console.log('Place added to wishlist successfully');
+                            resolve();
+                        },
+                        (_, error) => {
+                            console.error('Failed to add place to wishlist in Wishlists table', error);
+                            reject(error);
+                        }
+                    );
+                },
+                (_, error) => {
+                    console.error('Failed to retrieve wishlist places ID', error);
+                    reject(error);
+                }
+            );
+        });
+    });
+};
+
+
+export const removePlaceFromWishlist = (listId, placeId) => {
+    return new Promise((resolve, reject) => {
+        if (!listId) {
+            reject("List ID is required");
+            return;
+        }
+
+        db.transaction(tx => {
+            tx.executeSql(
+                `SELECT wishlistPlacesId FROM Wishlists WHERE id = ?;`,
+                [listId],
+                (_, result) => {
+                    if (result.rows.length === 0) {
+                        reject("No wishlist found with that ID");
+                        return;
+                    }
+
+                    const row = result.rows._array[0];
+                    let wishlistPlacesId = row.wishlistPlacesId;
+
+                    if (!wishlistPlacesId) {
+                        reject("No places to remove from wishlist");
+                        return;
+                    }
+
+                    let placesArray = wishlistPlacesId.split(',');
+                    const index = placesArray.indexOf(placeId.toString());
+                    if (index > -1) {
+                        placesArray.splice(index, 1);
+                    }
+
+                    let updatedWishlistPlacesId = placesArray.join(',');
+
+                    tx.executeSql(
+                        `UPDATE Wishlists SET wishlistPlacesId = ? WHERE id = ?;`,
+                        [updatedWishlistPlacesId, listId],
+                        () => {
+                            console.log('Place removed from wishlist successfully');
+                            resolve();
+                        },
+                        (_, error) => {
+                            console.error('Failed to remove place from wishlist in Wishlists table', error);
+                            reject(error);
+                        }
+                    );
+                },
+                (_, error) => {
+                    console.error('Failed to retrieve wishlist places ID', error);
+                    reject(error);
+                }
+            );
+        });
+    });
+};
+
+
 
 export const initDB = () => {
     // deleteAllTables();

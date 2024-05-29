@@ -15,8 +15,10 @@ export default function Home({ route, navigation }) {
             const setMapRenderFlag = route.params?.homeProps?.setMapRenderFlag;
             const setRandomChoice = route.params?.setRandomChoice;
             const setFilterOn = route.params?.setFilterOn;
+            const setGlobalSavedPlaces = route.params?.homeProps?.setGlobalSavedPlaces;
 
             setProps({
+                globalCurrentLocation: route.params.homeProps.globalCurrentLocation,
                 setGlobalCurrentLocation,
                 exitRandomChoice: route.params.homeProps.exitRandomChoice,
                 setExitRandomChoice,
@@ -26,18 +28,17 @@ export default function Home({ route, navigation }) {
                 mapRenderFlag: route.params.homeProps.mapRenderFlag,
                 setMapRenderFlag,
                 setRandomChoice,
-                setFilterOn
+                setFilterOn,
+                setGlobalSavedPlaces
             });
         }
     }, [route.params.homeProps]);
 
-    // useEffect(()=>{
-    //     console.log("randomChoice: ", route.params.randomChoice)
-    // },[route.params.randomChoice]);
-
     return (
         <View style={styles.container}>
-            <Searchbar />
+            <Searchbar
+                props={props}
+            />
             <Map
                 props={props}
                 randomChoice={route.params.randomChoice}

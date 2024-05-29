@@ -42,6 +42,9 @@
         {
           "locationWhenInUsePermission": "Picko needs your location to find nearby spots."
         }
+      ],
+      [
+        "@maplibre/maplibre-react-native"
       ]
     ]
   }

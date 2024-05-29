@@ -13,6 +13,9 @@ import * as Haptics from 'expo-haptics';
 import * as Location from 'expo-location';
 import haversine from 'haversine-distance';
 import { getSavedPlacesTable, getSavedPlacesWithinRadius, filterByTypes } from '../api/fetchNearbyPlaces';
+// import MapLibreGL from '@maplibre/maplibre-react-native';
+
+// MapLibreGL.setAccessToken(null);
 
 export default function Map({ props, randomChoice, location, currentScreen }) {
 
@@ -35,19 +38,20 @@ export default function Map({ props, randomChoice, location, currentScreen }) {
             });
     }, []);
     useEffect(() => {
-        getSavedPlacesTable()
-            .then(places => {
-                let validPlaces = getSavedPlacesWithinRadius(places, location.coords.latitude, location.coords.longitude, props.filterDistance);
-                setSavedPlaces(validPlaces);
-                if (props.filterWishlist === 'All Saved' || 'None') {
-                    setShowPLaces(validPlaces);
-                }
-            })
-            .catch(error => {
-                console.error('Failed to fetch saved places: ', error);
-            });
+        if (props.globalCurrentLocation) {
+            getSavedPlacesTable()
+                .then(places => {
+                    let validPlaces = getSavedPlacesWithinRadius(places, props.globalCurrentLocation.coords.latitude, props.globalCurrentLocation.coords.longitude, props.filterDistance);
+                    setSavedPlaces(validPlaces);
+                    if (props.filterWishlist === 'All Saved' || 'None') {
+                        setShowPLaces(validPlaces);
+                    }
+                })
+                .catch(error => {
+                    console.error('Failed to fetch saved places: ', error);
+                });
+        }
     }, [props.mapRenderFlag]);
-
 
     // console.log("location: ", location)
     const [useGoogleMaps, setUseGoogleMaps] = useState(false);
@@ -150,23 +154,23 @@ export default function Map({ props, randomChoice, location, currentScreen }) {
     const [filterText, setFilterText] = useState('');
     useEffect(() => {
         const { filterWishlist, filterCuisine, filterDistance } = props;
-    
+
         if (filterWishlist && filterCuisine && filterDistance) {
             console.log("props.filterCuisine", filterCuisine);
-    
+
             let filterText = '';
             const isWishlistNone = filterWishlist === 'None';
             const includesAllCuisine = filterCuisine.includes("All");
             const distanceText = filterDistance < 1 ? `${filterDistance * 1000}m` : `${filterDistance}km`;
             const wishlistPrefix = isWishlistNone ? '' : ` from '${filterWishlist}'`;
-    
+
             if (includesAllCuisine) {
                 filterText = `Anything${wishlistPrefix} in ${distanceText}`;
             } else {
                 const cuisineText = filterCuisine.length > 1 ? `${filterCuisine.length} types` : filterCuisine;
                 filterText = `${cuisineText}${wishlistPrefix} in ${distanceText}`;
             }
-    
+
             setFilterText(filterText);
         }
     }, [props, props.filterWishlist, props.filterCuisine, props.filterDistance]);
@@ -175,6 +179,7 @@ export default function Map({ props, randomChoice, location, currentScreen }) {
         <View style={styles.container}>
             <MapView
                 ref={mapRef}
+                logoEnabled={false}
                 style={[styles.map]}
                 customMapStyle={customMapStyle}
                 provider={useGoogleMaps ? "google" : undefined}
@@ -191,14 +196,14 @@ export default function Map({ props, randomChoice, location, currentScreen }) {
                 pitchEnabled={false}
                 rotateEnabled={false}
                 loadingEnabled={true}
-                showsUserLocation={!useGoogleMaps && !randomChoice}
-                followsUserLocation={(!useGoogleMaps && !randomChoice && autoResetCamera)}
+                // showsUserLocation={!useGoogleMaps && !randomChoice}
+                // followsUserLocation={(!useGoogleMaps && !randomChoice && autoResetCamera)}
                 showsPointsOfInterest={false}
                 showsCompass={false}
                 // tintColor='#7CE400'
                 tintColor='#000'
-                mapPadding={{ top: 100, right: 22, bottom: 170, left: 22 }}
-                legalLabelInsets={{ bottom: 0, right: 30 }}
+                mapPadding={{ top: 100, right: 20, bottom: 170, left: 20 }}
+                legalLabelInsets={{ bottom: 0, right: 20 }}
                 onPanDrag={() => { setAutoResetCamera(false) }}
             >
 
@@ -206,11 +211,11 @@ export default function Map({ props, randomChoice, location, currentScreen }) {
                     filterByTypes(showPlaces, props.filterCuisine)
                         .sort((a, b) => b.lon - a.lon)
                         .map((place, index) => {
-                            console.log(place);
+                            // console.log(place);
                             const size = 0.8;
 
                             return (
-                                <Marker
+                                <Marker 
                                     key={index}
                                     coordinate={{
                                         latitude: place.lat,
@@ -261,7 +266,7 @@ export default function Map({ props, randomChoice, location, currentScreen }) {
                     (() => {
                         const size = 0.8;
                         return (
-                            <Marker
+                            <Marker 
                                 coordinate={{
                                     latitude: randomChoice.lat,
                                     longitude: randomChoice.lon
@@ -286,10 +291,10 @@ export default function Map({ props, randomChoice, location, currentScreen }) {
                 <TouchableOpacity
                     style={[styles.filterIndicator, (currentScreen != 'home') && { opacity: 0, pointerEvents: 'none' }]}
                     activeOpacity={1}
-                    // onPress={() => {
-                    //     hapticFeedback();
-                    //     props.setFilterOn(true);
-                    // }}
+                // onPress={() => {
+                //     hapticFeedback();
+                //     props.setFilterOn(true);
+                // }}
                 >
                     <Text style={{ fontSize: 14, fontWeight: 700 }}>Filter:</Text>
                     <Text style={{ fontSize: 12, fontWeight: 400 }}>{filterText}</Text>

@@ -39,6 +39,7 @@ export default StyleSheet.create({
     },
     userInfoContent: {
         width: '100%',
+        height: 100,
         borderRadius: 12,
         backgroundColor: '#fff',
         borderWidth: 1,
@@ -109,7 +110,8 @@ export default StyleSheet.create({
         borderBottomColor: '#E9E9E9',
         borderBottomWidth: 1,
         backgroundColor: '#DDD',
-        pointerEvents: 'box-none'
+        pointerEvents: 'box-none',
+        overflow: 'hidden'
     },
     placeCardHead: {
         position: 'absolute',
@@ -235,9 +237,130 @@ export default StyleSheet.create({
     overcast: {
         position: 'absolute',
         flex: 1,
+        justifyContent:'flex-end',
         height: '100%',
         width: '100%',
         backgroundColor: 'rgba(0,0,0,0.3)',
         zIndex: 100,
+    },
+    editModal:{
+        position: 'absolute',
+        bottom: 0,
+        width: '100%',
+        paddingBottom: 45,
+        borderTopColor: '#CFCFCF',
+        borderTopWidth: 3,
+        backgroundColor: '#FFF',
+    },
+    editModalRow:{
+        width: '100%',
+        paddingVertical: 18,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#fff',
+    },
+
+    addStoreModal:{
+        position: 'absolute',
+        bottom: 0,
+        width: '100%',
+        height: '100%',
+        backgroundColor: '#FFF',
+        zIndex: 10
+    },
+    addModalBack:{
+        height: '100%'
+    },
+    addStoreTitle:{
+        width: '100%',
+        paddingBottom: 10,
+        paddingTop: 70,
+        paddingHorizontal: 20,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        backgroundColor: '#fff',
+        borderBottomColor: '#E7E7E7',
+        borderBottomWidth: 1,
+        columnGap: 20
+    },
+    addModalBottom:{
+        width: '100%',
+        paddingBottom: 45,
+        paddingHorizontal: 20,
+        paddingTop: 15,
+        backgroundColor: '#fff',
+        borderTopColor: '#CFCFCF',
+        borderTopWidth: 3,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        gap: 10
+    },
+    learnMoreBtnContent:{
+        height: 40,
+        width: '100%',
+        borderRadius: 6,
+        backgroundColor: '#fff',
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#000',
+        flexDirection: 'row',
+        columnGap: 8
+    },
+    learnMoreBtnShadow:{
+        top: 3,
+        position: 'absolute',
+        height: 40,
+        width: '100%',
+        borderRadius: 6,
+        backgroundColor: '#000',
+        zIndex: -1,
+    },
+    navigateBtnContent:{
+        height: 40,
+        width: '100%',
+        borderRadius: 6,
+        backgroundColor: '#fff',
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#000',
+        flexDirection: 'row',
+        columnGap: 8
+    },
+    navigateBtnShadow:{
+        top: 3,
+        position: 'absolute',
+        height: 40,
+        width: '100%',
+        borderRadius: 6,
+        backgroundColor: '#000',
+        zIndex: -1,
+    },
+    placeCheckbox:{
+        width: 30,
+        height: 30,
+        borderRadius: 6,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#c7c7c7',
+    },
+    placeCheckboxInner:{
+        flex: 1,
+        borderRadius: 6,
+        width: '100%',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    addModalPlaceCard:{
+        backgroundColor: '#fff',
+        flex: 1,
+        flexDirection: 'row',
+        justifyContent: 'flex-start',
+        alignItems: 'center',
+        paddingVertical: 20,
+        columnGap: 15
     }
 });

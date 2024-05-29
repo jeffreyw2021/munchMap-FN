@@ -11,12 +11,16 @@ import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import LeftSwipeCard from '../components/leftSwipeCard';
 import WishlistCard from '../components/wishlist';
-import { createWishlist } from '../config/sqlite';
+import { createWishlist, removePlaceFromWishlist } from '../config/sqlite';
 
 export default function Stores({ route, navigation }) {
 
     const setRandomChoice = route.params?.setRandomChoice;
     const props = route.params?.storeProps;
+
+    useEffect(()=>{
+        getWishlists();
+    },[props.renewWishlistFlag])
 
     const [savedPlaces, setSavedPlaces] = useState(null);
     const [checkSavedPlacesFlag, setCheckSavedPlacesFlag] = useState(false);
@@ -30,7 +34,11 @@ export default function Stores({ route, navigation }) {
                 console.error('Failed to fetch saved places: ', error);
             });
         getWishlists();
-    }, [checkSavedPlacesFlag]);
+    }, [defaultOn]);
+    useEffect(()=>{
+        console.log("savedPlaces: ", savedPlaces);
+    },[savedPlaces])
+
     const [defaultOn, setDefaultOn] = useState(true);
     const hapticFeedback = () => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -41,7 +49,7 @@ export default function Stores({ route, navigation }) {
             .then(wishlists => {
                 const processedWishlists = wishlists.map(wishlist => ({
                     ...wishlist,
-                    wishlistPlacesId: wishlist.wishlistPlacesId ? wishlist.wishlistPlacesId.split(';').map(Number) : []
+                    wishlistPlacesId: wishlist.wishlistPlacesId ? wishlist.wishlistPlacesId.split(',').map(Number) : []
                 }));
                 setWishlists(processedWishlists);
             })
@@ -58,6 +66,7 @@ export default function Stores({ route, navigation }) {
         if (savedPlaces && savedPlaces.length > 0) {
             cardRefs.current = savedPlaces.map((_, i) => cardRefs.current[i] || React.createRef());
         }
+        props.setGlobalSavedPlaces(savedPlaces);
     }, [savedPlaces]);
     const resetScrollPositions = () => {
         cardRefs.current.forEach(ref => {
@@ -90,7 +99,13 @@ export default function Stores({ route, navigation }) {
     };
 
     const [isPressingListEdit, setIsPressingListEdit] = useState(false);
+    const [wishlistReRenderFlag, setWishlistReRenderFlag] = useState(false);
 
+    useEffect(() => {
+        console.log("wishlistReRenderFlag: ", wishlistReRenderFlag);
+        getWishlists();
+    }, [wishlistReRenderFlag]);
+    
     return (
         <View style={styles.container}>
             <View style={{ flex: 1, width: '100%' }}>
@@ -103,7 +118,8 @@ export default function Stores({ route, navigation }) {
                     />
                     <View style={styles.userInfo}>
                         <View style={styles.userInfoContent}>
-                            <View style={styles.userInfoTop}>
+                            
+                            {/* <View style={styles.userInfoTop}>
                                 <View style={styles.userInfoLeft}>
                                     <Image source={Picko} style={styles.avatar} />
                                     <View style={{ justifyContent: 'flex-start', alignItems: 'flex-start', gap: 3 }}>
@@ -125,7 +141,7 @@ export default function Stores({ route, navigation }) {
                                 </View>
                                 <Text style={{ fontSize: 13, fontWeight: 500 }}>Lv.0</Text>
                                 <FontAwesomeIcon icon={faCircleQuestion} size={16} />
-                            </View>
+                            </View> */}
                         </View>
                         <View style={styles.userInfoShadow} />
                     </View>
@@ -137,6 +153,7 @@ export default function Stores({ route, navigation }) {
                             style={styles.listSwitchBtn}
                             onPress={() => {
                                 setDefaultOn(true);
+                                props.setSelectedList(null);
                                 hapticFeedback();
                             }}
                         >
@@ -154,6 +171,7 @@ export default function Stores({ route, navigation }) {
                             style={styles.listSwitchBtn}
                             onPress={() => {
                                 setDefaultOn(false);
+                                props.setSelectedList(null);
                                 hapticFeedback();
                             }}
                         >
@@ -183,14 +201,14 @@ export default function Stores({ route, navigation }) {
                                                 key={index}
                                                 ref={cardRefs.current[index]}
                                                 props={{
-                                                    checkSavedPlacesFlag,
-                                                    setCheckSavedPlacesFlag,
                                                     place,
                                                     isFirstItem,
                                                     isLastItem,
                                                     setRandomChoice,
-                                                    resetScrollPositions
+                                                    resetScrollPositions,
+                                                    setSavedPlaces
                                                 }}
+                                                getWishlists={getWishlists}
                                             />
                                         );
                                     }
@@ -223,9 +241,9 @@ export default function Stores({ route, navigation }) {
 
                                     <View style={{ width: '100%', paddingHorizontal: 20, marginTop: 7, gap: 12 }}>
                                         {(wishlists && wishlists.map(
-                                            (place, index) => {
+                                            (list, index) => {
                                                 return (
-                                                    <WishlistCard key={index} place={place} setSelectedList={props.setSelectedList} />
+                                                    <WishlistCard key={index} list={list} setSelectedList={props.setSelectedList} />
                                                 )
                                             }
                                         )
@@ -236,21 +254,27 @@ export default function Stores({ route, navigation }) {
                                 <View style={{ flex: 1, width: '100%' }}>
                                     <View style={styles.wishlistTop}>
                                         <TouchableOpacity
-                                            activeOpacity={1}
                                             onPress={() => {
-                                                setSelectedList(null);
+                                                props.setSelectedList(null);
                                                 hapticFeedback();
                                             }}
+                                            style={{ flexDirection: 'row', alignItems: 'center' }}
                                         >
                                             <FontAwesomeIcon icon={faAngleLeft} size={20} />
+                                            <Text style={{ fontSize: 16, fontWeight: 500 }}>Back</Text>
                                         </TouchableOpacity>
                                     </View>
                                     <ScrollView
                                         showsVerticalScrollIndicator={false}
                                         style={{ width: '100%' }}
                                     >
-                                        <View style={{ width: '100%', paddingHorizontal: 25, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-                                            <Text style={{ fontWeight: 700, fontSize: 22, textTransform: 'capitalize' }}>{props.selectedList.listName}</Text>
+                                        <View style={{ gap: 30, width: '100%', paddingHorizontal: 25, paddingBottom: 20, borderBottomWidth: 1, borderBottomColor: '#e9e9e9', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                                            <Text
+                                                style={{ flex: 1, overflow: 'hidden', fontWeight: 700, fontSize: 20, textTransform: 'capitalize' }}
+                                                numberOfLines={1}
+                                            >
+                                                {props.selectedList.listName}
+                                            </Text>
                                             <TouchableOpacity
                                                 activeOpacity={1}
                                                 onPressIn={() => setIsPressingListEdit(true)}
@@ -266,6 +290,30 @@ export default function Stores({ route, navigation }) {
                                                 <View style={styles.editWishlistBtnShadow} />
                                             </TouchableOpacity>
                                         </View>
+
+                                        {props && props.selectedList?.wishlistPlacesId.map(
+                                            (placeId, index) => {
+                                                const place = savedPlaces.find(p => p.id === placeId);
+                                                const selectedList = props.selectedList;
+                                                if(!place) return null;
+                                                return (
+                                                    <LeftSwipeCard
+                                                        key={index}
+                                                        ref={cardRefs.current[index]}
+                                                        props={{
+                                                            place,
+                                                            isFirstItem: index === 0,
+                                                            isLastItem: index === props.selectedList.wishlistPlacesId.length - 1,
+                                                            setRandomChoice,
+                                                            resetScrollPositions,
+                                                            selectedList
+                                                        }}
+                                                        getWishlists={getWishlists}
+                                                        isInWishlist={true}
+                                                    />
+                                                );
+                                            }
+                                        )}
                                     </ScrollView>
                                 </View>
                             )}

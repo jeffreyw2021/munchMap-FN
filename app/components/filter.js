@@ -6,7 +6,8 @@ import * as Haptics from 'expo-haptics';
 import { getSavedPlacesTable, getWishlistsTable, getTable } from '../api/fetchNearbyPlaces';
 import emojiReference from '../json/emojiReference.json';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faEllipsis } from '@fortawesome/free-solid-svg-icons';
+import { faEllipsis, faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons';
+import Fuse from 'fuse.js';
 
 export default function Filter({ props }) {
 
@@ -18,6 +19,13 @@ export default function Filter({ props }) {
     const [wishlists, setWishlists] = useState([]);
     const [cuisines, setCuisines] = useState([]);
     const [filterJson, setFilterJson] = useState(null);
+
+    const fuse = useRef(new Fuse([], {
+        keys: ["name"],
+        includeScore: true,
+        threshold: 0.3 // Adjust this value based on desired fuzziness
+    }));
+
 
     useEffect(() => {
         getWishlists();
@@ -38,8 +46,13 @@ export default function Filter({ props }) {
         const output = Object.keys(emojiReference).flatMap(key =>
             Object.keys(emojiReference[key]).map(subkey => subkey.replace("_", " ").replace("&", " & "))
         );
-        setCuisines(output);
+    
+        const uniqueCuisines = Array.from(new Set(output));
+    
+        setCuisines(uniqueCuisines);
+        fuse.current.setCollection(uniqueCuisines.map(name => ({ name })));
     }
+    
     useEffect(() => {
         if (wishlists.length > 0 && cuisines.length > 0) {
             setFilterJson({
@@ -80,6 +93,20 @@ export default function Filter({ props }) {
             props.setFilterOn(false);
         });
     };
+
+    const [searchTerm, setSearchTerm] = useState('');
+    const [filteredCuisines, setFilteredCuisines] = useState([]);
+
+    const handleSearchChange = (text) => {
+        setSearchTerm(text);
+        if (text) {
+            const results = fuse.current.search(text);
+            setFilteredCuisines(results.map(result => result.item.name));
+        } else {
+            setFilteredCuisines([]); // Reset when search term is cleared
+        }
+    };
+
 
     return (
         <View style={styles.overcast}>
@@ -123,6 +150,8 @@ export default function Filter({ props }) {
                                                     } else {
                                                         setTypesExpand(true);
                                                     }
+
+                                                    setSearchTerm('');
                                                 }}
                                             >
                                                 {pendingFilterCuisine && pendingFilterCuisine.includes(item) ? (
@@ -155,16 +184,20 @@ export default function Filter({ props }) {
                                             onPress={() => {
                                                 hapticFeedback();
                                                 setTypesExpand(false);
+                                                setSearchTerm('');
                                             }}
                                         >
                                             <FontAwesomeIcon icon={faEllipsis} size={14} />
                                         </TouchableOpacity>
                                     </View>
                                     <View style={styles.filterExpandTop}>
-                                        <TextInput 
-                                        style={styles.filterSearch}
-                                        placeholder='Search for type...'
-                                        placeholderTextColor={'#C7C7C7'}
+                                        <FontAwesomeIcon icon={faMagnifyingGlass} size={12} style={styles.filterSearchIcon} />
+                                        <TextInput
+                                            style={styles.filterSearch}
+                                            placeholder='Search for type...'
+                                            placeholderTextColor={'#C7C7C7'}
+                                            onChangeText={handleSearchChange}
+                                            value={searchTerm}
                                         />
                                     </View>
                                     <ScrollView
@@ -179,6 +212,7 @@ export default function Filter({ props }) {
                                                     ...filterJson.cuisine.slice(filterJson.cuisine.indexOf('...'), filterJson.cuisine.length).sort()
                                                 ]
                                                     .filter(val => val !== '...')
+                                                    .filter(item => !searchTerm || filteredCuisines.includes(item))
                                                     .map(
                                                         (item, index) => {
                                                             return (

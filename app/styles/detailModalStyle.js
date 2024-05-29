@@ -19,7 +19,7 @@ export default StyleSheet.create({
         width: '100%',
         backgroundColor: '#fff',
         paddingBottom: 45,
-        paddingHorizontal: 30,
+        paddingHorizontal: 20,
         paddingTop: 20,
         borderTopColor: '#CFCFCF',
         borderTopWidth: 3,
@@ -141,7 +141,7 @@ export default StyleSheet.create({
         width: '100%',
         flexDirection: 'row',
         justifyContent: 'space-between',
-        gap: 10
+        gap: 20
     },
     saveBtnContent:{
         height: 40,

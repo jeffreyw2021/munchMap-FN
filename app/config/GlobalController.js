@@ -8,6 +8,7 @@ import Filter from '../components/filter';
 import DetailModal from '../components/detailModal';
 import EditListModal from '../components/editListModal';
 import AppNavigator from './AppNavigator';
+import { getSavedPlacesTable, getWishlistsTable } from '../api/fetchNearbyPlaces';
 
 export default function GlobalController() {
 
@@ -47,22 +48,12 @@ export default function GlobalController() {
     const [filterDistance, setFilterDistance] = useState(0.5);
     const [filterWishlist, setFilterWishlist] = useState('None');
     const [filterCuisine, setFilterCuisine] = useState(['All']);
-    useEffect(() => {
-        console.log("Distance: ", filterDistance, 'km');
-    }, [filterDistance]);
-    useEffect(() => {
-        console.log("Wishlist: ", filterWishlist);
-    }, [filterWishlist]);
-    useEffect(() => {
-        console.log("Cuisine: ", filterCuisine);
-    }, [filterCuisine]);
 
     //Randomize Choice
     const [randomChoice, setRandomChoice] = useState(null);
     const [exitRandomChoice, setExitRandomChoice] = useState(false);
     useEffect(() => {
         updateScreen("home");
-        // console.log("randomChoice: ", randomChoice || "no random choice")
     }, [randomChoice])
 
     const [mapRenderFlag, setMapRenderFlag] = useState(false);
@@ -70,6 +61,29 @@ export default function GlobalController() {
     //Edit List
     const [editList, setEditList] = useState(false);
     const [selectedList, setSelectedList] = useState(null);
+    const [globalSavedPlaces, setGlobalSavedPlaces] = useState(null);
+    const [renewWishlistFlag, setRenewWishlistFlag] = useState(false);
+    const renewSelectedList = (id) => {
+        getWishlistsTable()
+            .then(wishlists => {
+                const processedWishlists = wishlists.map(wishlist => ({
+                    ...wishlist,
+                    wishlistPlacesId: wishlist.wishlistPlacesId ? wishlist.wishlistPlacesId.split(',').map(Number) : []
+                }));
+                const newSelectedList = processedWishlists.find(wishlist => wishlist.id == id);
+                setSelectedList(newSelectedList);
+                setRenewWishlistFlag(!renewWishlistFlag);
+            })
+            .catch(error => {
+                console.error('Failed to fetch wishlists: ', error);
+            });
+    }
+
+    //loader
+    const [loaderOn, setLoaderOn] = useState(false);
+    useEffect(() => {
+        console.log("Loader: ", loaderOn);
+    }, [loaderOn]);
 
     //error handling
     if (error) {
@@ -81,11 +95,22 @@ export default function GlobalController() {
     }
 
     else if (location) {
-        // console.log("Location: ", location);
         return (
             <View style={{ flex: 1, backgroundColor: '#fff' }}>
+                {loaderOn && (<View style={{ height: '100%', width: '100%', top: 0, left: 0, right: 0, bottom: 0, position: 'absolute', zIndex: 999, justifyContent: 'center', alignItems: 'center' }}>
+                    <View style={{justifyContent: 'center', alignContent:'center', padding: 20, backgroundColor:'rgba(0,0,0,0.2)', borderRadius: 16}}>
+                        <ActivityIndicator size="large" color="#fff" />
+                    </View>
+                </View>)}
                 {editList && (
-                    <EditListModal 
+                    <EditListModal
+                        props={{
+                            setEditList,
+                            setSelectedList,
+                            selectedList,
+                            globalSavedPlaces,
+                            renewSelectedList
+                        }}
                     />
                 )}
                 {randomChoice && (
@@ -98,7 +123,11 @@ export default function GlobalController() {
                             filterDistance,
                             mapRenderFlag,
                             setMapRenderFlag,
-                            filterCuisine
+                            filterCuisine,
+                            setGlobalSavedPlaces,
+                            setLoaderOn,
+                            loaderOn,
+                            setLoaderOn
                         }}
                     />
                 )}
@@ -130,7 +159,11 @@ export default function GlobalController() {
                             filterDistance,
                             setRandomChoice,
                             filterWishlist,
-                            filterCuisine
+                            filterCuisine,
+                            mapRenderFlag,
+                            setMapRenderFlag,
+                            loaderOn,
+                            setLoaderOn
                         }}
                     />
                     {currentScreen == 'stores' && (<View style={{
@@ -147,6 +180,7 @@ export default function GlobalController() {
                         location={location}
                         currentScreen={currentScreen}
                         homeProps={{
+                            globalCurrentLocation,
                             setGlobalCurrentLocation,
                             exitRandomChoice,
                             setExitRandomChoice,
@@ -155,12 +189,16 @@ export default function GlobalController() {
                             filterCuisine,
                             mapRenderFlag,
                             setMapRenderFlag,
-                            setFilterOn
+                            setFilterOn,
+                            setGlobalSavedPlaces
                         }}
                         storeProps={{
                             setEditList,
                             setSelectedList,
                             selectedList,
+                            setGlobalSavedPlaces,
+                            renewSelectedList,
+                            renewWishlistFlag
                         }}
                         randomChoice={randomChoice}
                         setRandomChoice={setRandomChoice}

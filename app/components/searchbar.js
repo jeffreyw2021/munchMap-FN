@@ -8,6 +8,7 @@ import * as Haptics from 'expo-haptics';
 
 export default function Searchbar() {
 
+    //UI
     const [isPressing, setIsPressing] = useState(false);
     const [TriggerOn, setTriggerOn] = useState(false);
     const inputRef = useRef(null);
@@ -19,6 +20,11 @@ export default function Searchbar() {
             setSearchText("");
         }
     }, [TriggerOn]);
+    const hapticFeedback = () => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    }
+
+    //Search
     const [searchText, setSearchText] = useState("");
     const [results, setResults] = useState([]);
     const handleSearch = async () => {
@@ -27,9 +33,11 @@ export default function Searchbar() {
         }
         setTriggerOn(false);
     };
-    const hapticFeedback = () => {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    }
+    useEffect(()=>{
+        if (searchText.length > 0) {
+            
+        }
+    },[searchText]);
 
     return (
         <View style={styles.overcast}>
@@ -47,7 +55,7 @@ export default function Searchbar() {
                         style={[{ flex: 1, display: 'none', fontSize: 14 }, TriggerOn ? { display: 'flex' } : null]}
                         cursorColor="#C7C7C7"
                         selectionColor="#C7C7C7"
-                        placeholder='search for a place'
+                        placeholder='search for places based on filter'
                         value={searchText}
                         onChangeText={setSearchText}
                         onSubmitEditing={handleSearch}

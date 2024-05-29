@@ -36,6 +36,7 @@ export default function Navbar({ props }) {
 
     const handleToHome = () => {
         props.updateScreen("home");
+        props.setMapRenderFlag(!props.mapRenderFlag);
         setIsInHome(true);
         setIsInStores(false);
     }
@@ -119,11 +120,11 @@ export default function Navbar({ props }) {
     };
     const rollForPlaces = async () => {
         console.log("Current Location Latitude: ", currentLocation.coords.latitude, ", Longitude: ", currentLocation.coords.longitude);
+        props.setLoaderOn(true); // Turn on the loader before starting the fetch operation
         try {
             const fetchedPlaceId = await RandomlyPickFromFetchedPlaces(currentLocation.coords.latitude, currentLocation.coords.longitude, props.filterDistance, props.filterCuisine, false);
             console.log("Fetched Place ID: ", fetchedPlaceId);
             if (fetchedPlaceId) {
-                console.log("Fetched Place ID: ", fetchedPlaceId);
                 const placeDetails = await getPlaceDetailsById(fetchedPlaceId);
                 props.setRandomChoice(placeDetails);
             } else {
@@ -131,8 +132,10 @@ export default function Navbar({ props }) {
             }
         } catch (error) {
             console.error("Error during fetching and retrieving place details: ", error);
+        } finally {
+            props.setLoaderOn(false); // Turn off the loader regardless of success or failure
         }
-    };
+    };    
 
     const [filterText, setFilterText] = useState("Anything Nearby");
     useEffect(() => {
@@ -169,10 +172,10 @@ export default function Navbar({ props }) {
                 <TouchableOpacity
                     style={[styles.navbtn, styles.rollbtn]}
                     activeOpacity={1}
-                    onPressIn={() => setIsPressingRoll(true)}
+                    onPressIn={() => !props.loaderOn && setIsPressingRoll(true)}
                     onPressOut={() => {
-                        setIsPressingRoll(false);
-                        rollForPlaces();
+                        !props.loaderOn && setIsPressingRoll(false);
+                        !props.loaderOn &&rollForPlaces();
                     }}
                 >
                     <View style={[styles.navbtn, styles.btnContent, styles.rollbtn, isPressingRoll && { top: 3 }]}>

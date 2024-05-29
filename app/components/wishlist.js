@@ -3,7 +3,7 @@ import { View, StyleSheet, Text, Image, TouchableOpacity } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faAngleRight } from '@fortawesome/free-solid-svg-icons';
 
-export default function WishlistCard({place = {"id": -1, "listName": "NULL", "wishlistPlacesId": []}, setSelectedList}) {
+export default function WishlistCard({list = {"id": -1, "listName": "NULL", "wishlistPlacesId": []}, setSelectedList}) {
 
     const [isPressing, setIsPressing] = useState(false);
 
@@ -13,12 +13,12 @@ export default function WishlistCard({place = {"id": -1, "listName": "NULL", "wi
             activeOpacity={1}
             onPressIn={()=> {setIsPressing(true);}}
             onPressOut={()=> {setIsPressing(false);}}
-            onPress={()=> {setSelectedList(place);}}
+            onPress={()=> {setSelectedList(list);}}
         >
             <View style={[styles.wishlistCardContent, isPressing && {top: 3}]}>
                 <View style={{flex: 1, alignItems: 'flex-start', justifyContent: 'flex-start', rowGap: 3}}>
-                    <Text numberOfLines={1} style={{width:'100%', overflow: 'hidden', fontSize: 16, fontWeight: 600}} ellipsizeMode='tail'>{place.listName}</Text>
-                    <Text style={{fontSize: 12, color: '#8C8C8C'}}>{place.wishlistPlacesId.length} Saved Spots</Text>
+                    <Text numberOfLines={1} style={{width:'100%', overflow: 'hidden', fontSize: 16, fontWeight: 600}} ellipsizeMode='tail'>{list.listName}</Text>
+                    <Text style={{fontSize: 12, color: '#8C8C8C'}}>{list.wishlistPlacesId.length} Saved Spots</Text>
                 </View>
                 <FontAwesomeIcon icon={faAngleRight} size={20} />
             </View>

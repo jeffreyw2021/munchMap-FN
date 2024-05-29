@@ -184,7 +184,7 @@ export const filterByTypes = (places, filterCuisine) => {
             });
 
             if (hasRelevantAttribute) {
-                console.log("places.attributes", attributes);
+                // console.log("places.attributes", attributes);
                 return true;
             }
         }
@@ -201,21 +201,31 @@ export const RandomlyPickFromFetchedPlaces = async (lat, lon, searchRadius = 0.5
 
     if (filterCuisine.includes("All")) {
         query += `
-            node["amenity"](around:${searchRadius * 1000},${lat},${lon});
-            node["shop"="bakery"](around:${searchRadius * 1000},${lat},${lon});
+        node["amenity"="restaurant"](around:${searchRadius * 1000},${lat},${lon});
+        node["amenity"="cafe"](around:${searchRadius * 1000},${lat},${lon});
+        node["amenity"="pub"](around:${searchRadius * 1000},${lat},${lon});
+        node["amenity"="bar"](around:${searchRadius * 1000},${lat},${lon});
+        node["amenity"="bbq"](around:${searchRadius * 1000},${lat},${lon});
+        node["amenity"="fast_food"](around:${searchRadius * 1000},${lat},${lon});
+        node["amenity"="ice_cream"](around:${searchRadius * 1000},${lat},${lon});
+        node["shop"="bakery"](around:${searchRadius * 1000},${lat},${lon});
         `;
     } else {
         const amenityTypes = ['restaurant', 'cafe', 'pub', 'bar', 'bbq', 'fast_food', 'ice_cream'];
-        const shopTypes = ['bakery']; // Include only relevant shop types
 
         for (const amenity of amenityTypes) {
             if (filterCuisine.includes(amenity)) {
                 query += `node["amenity"="${amenity}"](around:${searchRadius * 1000},${lat},${lon});`;
             }
         }
+        if (filterCuisine.includes('bakery')) {
+            query += `node["shop"="bakery"](around:${searchRadius * 1000},${lat},${lon});`;
+        }
     }
 
     query += '); out;';
+
+    console.log("Querying Overpass API with query:", query);
 
     try {
         const response = await axios.post(overpassUrl, query);
@@ -250,7 +260,7 @@ const fetchRandomPlaceFromLocal = async (lat, lon, radius, filterCuisine) => {
     try {
         const localPlaces = await getPlacesWithinRadius(lat, lon, radius);
         const filteredPlaces = filterByTypes(localPlaces, filterCuisine);
-        
+
         if (filteredPlaces.length > 0) {
             const randomIndex = Math.floor(Math.random() * filteredPlaces.length);
             return filteredPlaces[randomIndex].id;

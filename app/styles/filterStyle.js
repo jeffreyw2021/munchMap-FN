@@ -73,6 +73,13 @@ export default StyleSheet.create({
         paddingHorizontal: 20,
         paddingBottom: 16
     },
+    filterSearchIcon: {
+        position: 'absolute',
+        left: 32,
+        top: '50%',
+        transform: [{ translateY: -0.5 * 12 }],
+        zIndex: 5
+    },    
     filterSearch:{
         width: '100%',
         fontSize: 16,
@@ -81,7 +88,8 @@ export default StyleSheet.create({
         borderColor: '#000',
         backgroundColor: '#fff',
         paddingHorizontal: 10,
-        paddingVertical: 8
+        paddingVertical: 8,
+        paddingLeft: 35
     },
     filterExpandBody:{
         flexDirection:'row',
